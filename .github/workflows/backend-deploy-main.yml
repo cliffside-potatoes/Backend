@@ -50,5 +50,5 @@ jobs:
             key: ${{ secrets.EC2_SSH_KEY }} 
             script: | 
               cd ~/naeng-gu/infra/docker 
-              docker compose pull backend 
-              docker compose up -d backend 
+              sudo docker compose pull backend 
+              sudo docker compose up -d backend 
