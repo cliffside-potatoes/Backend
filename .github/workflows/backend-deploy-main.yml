@@ -1,4 +1,4 @@
-name: Java CI with Gradle - Main
+name: Java CI/CD with Gradle - Main
 
 on:
   push:
@@ -38,3 +38,17 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/naeng-gu-backend:latest .
         docker push ${{ secrets.DOCKER_USERNAME }}/naeng-gu-backend:latest
 
+  deploy: 
+      needs: build  
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy to server via SSH
+          uses: appleboy/ssh-action@v0.1.7
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USERNAME }} 
+            key: ${{ secrets.EC2_SSH_KEY }} 
+            script: | 
+              cd ~/naeng-gu/infra/docker 
+              docker compose pull backend 
+              docker compose up -d backend 
