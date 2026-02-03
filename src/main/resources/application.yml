@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: Naengu
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+
+logging:
+  level:
+    org.hibernate.SQL: debug
