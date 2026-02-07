@@ -65,5 +65,11 @@ public class FridgeCategory {
         return category;
     }
 
+    public void update(StorageType newStorageType, String newName, CategoryColor newColor) {
+        if (newStorageType != null) this.storageType = newStorageType;
+        if (newName != null) this.name = newName;
+        if (newColor != null) this.color = newColor;
+    }
+
 
 }
