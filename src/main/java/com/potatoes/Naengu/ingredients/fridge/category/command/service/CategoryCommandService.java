@@ -3,8 +3,10 @@ package com.potatoes.Naengu.ingredients.fridge.category.command.service;
 import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.*;
 
 import com.potatoes.Naengu.ingredients.fridge.category.command.command.CreateCategoryCommand;
+import com.potatoes.Naengu.ingredients.fridge.category.command.command.UpdateCategoryCommand;
 import com.potatoes.Naengu.ingredients.fridge.category.repository.FridgeCategoryRepository;
 import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
+import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +50,76 @@ public class CategoryCommandService {
 
         repository.save(category);
         return category.getId();
+    }
 
+    @Transactional
+    public Long update(Long fridgeId, UpdateCategoryCommand command) {
+        if (!command.hasAnyChange()) {
+            throw new ApiException(
+                    CATEGORY_UPDATE_EMPTY.code(),
+                    CATEGORY_UPDATE_EMPTY.message(),
+                    CATEGORY_UPDATE_EMPTY.status()
+            );
+        }
+
+        FridgeCategory category = repository.findById(command.categoryId())
+                .orElseThrow(() -> new ApiException(
+                        CATEGORY_NOT_FOUND.code(),
+                        CATEGORY_NOT_FOUND.message(),
+                        CATEGORY_NOT_FOUND.status()
+                ));
+
+        if (!category.getFridgeId().equals(fridgeId)) {
+            throw new ApiException(
+                    CATEGORY_FORBIDDEN.code(),
+                    CATEGORY_FORBIDDEN.message(),
+                    CATEGORY_FORBIDDEN.status()
+            );
+        }
+
+        StorageType targetStorageType = resolveStorageType(command, category);
+        String targetName = resolveName(command, category);
+
+        if (command.name() != null && targetName.isBlank()) {
+            throw new ApiException(
+                    "VALIDATION_ERROR",
+                    "name은 공백일 수 없습니다.",
+                    org.springframework.http.HttpStatus.BAD_REQUEST
+            );
+        }
+
+        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
+                fridgeId,
+                targetStorageType,
+                targetName,
+                category.getId()
+        );
+
+        if (duplicate) {
+            throw new ApiException(
+                    CATEGORY_DUPLICATE.code(),
+                    CATEGORY_DUPLICATE.message(),
+                    CATEGORY_DUPLICATE.status()
+            );
+        }
+
+        category.update(command.storageType(), command.name(), command.color());
+        return category.getId();
+
+    }
+
+    private StorageType resolveStorageType(UpdateCategoryCommand command, FridgeCategory category) {
+        if (command.storageType() != null) {
+            return command.storageType();
+        }
+        return category.getStorageType();
+    }
+
+    private String resolveName(UpdateCategoryCommand command, FridgeCategory category) {
+        if (command.name() != null) {
+            return command.name();
+        }
+        return category.getName();
     }
 
 }
