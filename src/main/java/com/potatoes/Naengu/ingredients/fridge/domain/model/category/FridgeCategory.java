@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,8 +23,8 @@ import lombok.NoArgsConstructor;
         name = "fridge_category",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_fridge_category_fridge_storage_name",
-                        columnNames = {"fridge_id", "storage_type", "name"}
+                        name = "uk_fridge_category_fridge_storage_name_deleted",
+                        columnNames = {"fridge_id", "storage_type", "name","deleted"}
                 )
         }
 )
@@ -49,6 +50,12 @@ public class FridgeCategory {
     @Column(name = "color", nullable = false)
     private CategoryColor color;
 
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     public static FridgeCategory create(
             Long fridgeId,
             String name,
@@ -62,6 +69,8 @@ public class FridgeCategory {
         category.orderIndex = orderIndex;
         category.storageType = storageType;
         category.color = color;
+        category.deleted = false;
+        category.deletedAt = null;
         return category;
     }
 
@@ -69,6 +78,11 @@ public class FridgeCategory {
         if (newStorageType != null) this.storageType = newStorageType;
         if (newName != null) this.name = newName;
         if (newColor != null) this.color = newColor;
+    }
+
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
     }
 
 
