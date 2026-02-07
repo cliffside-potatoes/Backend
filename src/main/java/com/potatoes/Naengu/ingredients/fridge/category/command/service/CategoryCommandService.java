@@ -21,9 +21,9 @@ public class CategoryCommandService {
     }
 
     @Transactional
-    public Long create(Long fridgeId,CreateCategoryCommand command) {
+    public Long create(Long fridgeId, CreateCategoryCommand command) {
 
-        boolean exists = repository.existsByFridgeIdAndStorageTypeAndName(
+        boolean exists = repository.existsByFridgeIdAndStorageTypeAndNameAndDeletedFalse(
                 fridgeId,
                 command.storageType(),
                 command.name()
@@ -38,7 +38,7 @@ public class CategoryCommandService {
         }
 
         int nextOrderIndex =
-                repository.findMaxOrderIndexByFridgeIdAndStorageType(fridgeId,command.storageType()) + 1;
+                repository.findMaxOrderIndexByFridgeIdAndStorageType(fridgeId, command.storageType()) + 1;
 
         FridgeCategory category = FridgeCategory.create(
                 fridgeId,
@@ -88,7 +88,7 @@ public class CategoryCommandService {
             );
         }
 
-        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
+        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNotAndDeletedFalse(
                 fridgeId,
                 targetStorageType,
                 targetName,
@@ -122,4 +122,23 @@ public class CategoryCommandService {
         return category.getName();
     }
 
+    @Transactional
+    public void delete(Long fridgeId, Long categoryId) {
+        FridgeCategory category = repository.findByIdAndDeletedFalse(categoryId)
+                .orElseThrow(() -> new ApiException(
+                        CATEGORY_NOT_FOUND.code(),
+                        CATEGORY_NOT_FOUND.message(),
+                        CATEGORY_NOT_FOUND.status()
+                ));
+
+        if (!category.getFridgeId().equals(fridgeId)) {
+            throw new ApiException(
+                    CATEGORY_FORBIDDEN.code(),
+                    CATEGORY_FORBIDDEN.message(),
+                    CATEGORY_FORBIDDEN.status()
+            );
+        }
+
+        category.softDelete();
+    }
 }
