@@ -10,6 +10,7 @@ import com.potatoes.Naengu.ingredients.shared.auth.AuthFridgeId;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,10 +29,9 @@ public class CategoryCommandController {
 
     @PostMapping("/ingredients/categories")
     public ResponseEntity<Api<CreateCategoryResponse>> create(
-//            @AuthFridgeId Long fridgeId,
-            @Valid @RequestBody CreateCategoryRequest request) {
-
-        Long fridgeId = 1L;
+            @AuthFridgeId Long fridgeId,
+            @Valid @RequestBody CreateCategoryRequest request)
+    {
         Long id = service.create(fridgeId, request.toCommand());
 
         return ResponseEntity
@@ -41,15 +41,23 @@ public class CategoryCommandController {
 
     @PatchMapping("/ingredients/categories/{categoryId}")
     public ResponseEntity<Api<UpdateCategoryResponse>> update(
-//            @AuthFridgeId Long fridgeId,
+            @AuthFridgeId Long fridgeId,
             @PathVariable Long categoryId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        Long fridgeId = 1L;
         Long updatedId = service.update(fridgeId, request.toCommand(categoryId));
         return ResponseEntity.ok(
                 Api.success(new UpdateCategoryResponse(updatedId))
         );
-
     }
+
+    @DeleteMapping("/ingredients/categories/{categoryId}")
+    public ResponseEntity<Api<Void>> delete(
+            @AuthFridgeId Long fridgeId,
+            @PathVariable Long categoryId
+    ) {
+        service.delete(fridgeId, categoryId);
+        return ResponseEntity.ok(Api.success());
+    }
+
 }
