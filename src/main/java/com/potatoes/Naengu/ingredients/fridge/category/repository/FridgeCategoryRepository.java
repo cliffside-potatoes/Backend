@@ -13,6 +13,13 @@ public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, 
             String name
     );
 
+    boolean existsByFridgeIdAndStorageTypeAndNameAndIdNot(
+            Long fridgeId,
+            StorageType storageType,
+            String name,
+            Long id
+    );
+
     @Query("""
  select coalesce(max(c.orderIndex), 0)
  from FridgeCategory c
