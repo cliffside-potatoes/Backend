@@ -1,0 +1,15 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/로컬DB이름?serverTimezone=Asia/Seoul
+    username: YOUR_USERNAME
+    password: YOUR_PASSWORD
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
