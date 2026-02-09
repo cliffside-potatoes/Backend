@@ -57,16 +57,16 @@ public class FridgeIngredientCommandService {
         boolean exists = ingredientRepository.existsById(ingredientId);
         if (!exists) {
             throw new ApiException(
-                    INGREDIENT_NOT_FOUND.code(),
-                    INGREDIENT_NOT_FOUND.message(),
-                    INGREDIENT_NOT_FOUND.status()
+                    FRIDGE_INGREDIENT_NOT_FOUND.code(),
+                    FRIDGE_INGREDIENT_NOT_FOUND.message(),
+                    FRIDGE_INGREDIENT_NOT_FOUND.status()
             );
         }
     }
 
     private void validateNotDuplicated(Long fridgeId, CreateFridgeIngredientCommand command) {
         boolean duplicated = fridgeIngredientRepository
-                .existsByFridgeIdAndFridgeCategoryIdAndIngredientIdAndDeletedFalse(
+                .existsByFridgeIdAndFridgeCategoryIdAndIngredientId(
                         fridgeId,
                         command.categoryId(),
                         command.ingredientId()
@@ -94,9 +94,9 @@ public class FridgeIngredientCommandService {
 
         FridgeIngredient fridgeIngredient = fridgeIngredientRepository.findById(command.fridgeIngredientId())
                 .orElseThrow(() -> new ApiException(
-                        INGREDIENT_NOT_FOUND.code(),
-                        INGREDIENT_NOT_FOUND.message(),
-                        INGREDIENT_NOT_FOUND.status()
+                        FRIDGE_INGREDIENT_NOT_FOUND.code(),
+                        FRIDGE_INGREDIENT_NOT_FOUND.message(),
+                        FRIDGE_INGREDIENT_NOT_FOUND.status()
                 ));
 
         if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
@@ -110,7 +110,7 @@ public class FridgeIngredientCommandService {
         Long targetCategoryId = resolveCategoryId(command, fridgeIngredient);
         Long targetIngredientId = resolveIngredientId(command, fridgeIngredient);
 
-        boolean duplicate = fridgeIngredientRepository.existsByFridgeIdAndFridgeCategoryIdAndIngredientIdAndDeletedFalseAndIdNot(
+        boolean duplicate = fridgeIngredientRepository.existsByFridgeIdAndFridgeCategoryIdAndIngredientIdAndIdNot(
                 fridgeId,
                 targetCategoryId,
                 targetIngredientId,
@@ -143,5 +143,25 @@ public class FridgeIngredientCommandService {
         }
         return fridgeIngredient.getIngredientId();
 
+    }
+
+    @Transactional
+    public void delete(Long fridgeId, Long fridgeIngredientId) {
+        FridgeIngredient fridgeIngredient = fridgeIngredientRepository.findById(fridgeIngredientId)
+                .orElseThrow(() -> new ApiException(
+                        FRIDGE_INGREDIENT_NOT_FOUND.code(),
+                        FRIDGE_INGREDIENT_NOT_FOUND.message(),
+                        FRIDGE_INGREDIENT_NOT_FOUND.status()
+                ));
+
+        if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
+            throw new ApiException(
+                    FRIDGE_INGREDIENT_FORBIDDEN.code(),
+                    FRIDGE_INGREDIENT_FORBIDDEN.message(),
+                    FRIDGE_INGREDIENT_FORBIDDEN.status()
+            );
+        }
+
+        fridgeIngredientRepository.delete(fridgeIngredient);
     }
 }

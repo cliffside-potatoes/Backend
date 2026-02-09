@@ -11,10 +11,12 @@ import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SoftDelete;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@SoftDelete
 @Table(name = "fridge_ingredient",
         indexes = {
                 @Index(
@@ -41,9 +43,6 @@ public class FridgeIngredient {
 
     @Column(name = "ingredient_id", nullable = false)
     private Long ingredientId;
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
