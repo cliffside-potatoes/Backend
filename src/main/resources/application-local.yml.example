@@ -9,7 +9,12 @@ spring:
     username: YOUR_USERNAME
     password: YOUR_PASSWORD
 
-  jpa:
-    hibernate:
-      ddl-auto: update
+    jpa:
+      hibernate:
+        ddl-auto: update
+      defer-datasource-initialization: true
+
+    sql:
+      init:
+        mode: always
 

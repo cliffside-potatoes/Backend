@@ -31,4 +31,6 @@ public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, 
                and c.deleted = false
             """)
     int findMaxOrderIndexByFridgeIdAndStorageType(Long fridgeId, StorageType storageType);
+
+    boolean existsByIdAndFridgeIdAndDeletedFalse(Long id, Long fridgeId);
 }
