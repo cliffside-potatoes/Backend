@@ -20,4 +20,10 @@ public class UserEntity {
     private String email;
 
     private String role;
+
+    public UserEntity(String providerId, String email, String role){
+        this.providerId = providerId;
+        this.email = email;
+        this.role = role;
+    }
 }
