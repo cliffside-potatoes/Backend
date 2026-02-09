@@ -11,14 +11,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SoftDelete;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@SoftDelete
 @Table(
         name = "fridge_category",
         uniqueConstraints = {
@@ -50,12 +51,6 @@ public class FridgeCategory {
     @Column(name = "color", nullable = false)
     private CategoryColor color;
 
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     public static FridgeCategory create(
             Long fridgeId,
             String name,
@@ -69,8 +64,6 @@ public class FridgeCategory {
         category.orderIndex = orderIndex;
         category.storageType = storageType;
         category.color = color;
-        category.deleted = false;
-        category.deletedAt = null;
         return category;
     }
 
@@ -79,11 +72,5 @@ public class FridgeCategory {
         if (newName != null) this.name = newName;
         if (newColor != null) this.color = newColor;
     }
-
-    public void softDelete() {
-        this.deleted = true;
-        this.deletedAt = LocalDateTime.now();
-    }
-
 
 }

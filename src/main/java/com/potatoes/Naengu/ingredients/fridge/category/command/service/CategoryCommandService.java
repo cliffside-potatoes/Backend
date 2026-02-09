@@ -23,7 +23,7 @@ public class CategoryCommandService {
     @Transactional
     public Long create(Long fridgeId, CreateCategoryCommand command) {
 
-        boolean exists = repository.existsByFridgeIdAndStorageTypeAndNameAndDeletedFalse(
+        boolean exists = repository.existsByFridgeIdAndStorageTypeAndName(
                 fridgeId,
                 command.storageType(),
                 command.name()
@@ -88,7 +88,7 @@ public class CategoryCommandService {
             );
         }
 
-        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNotAndDeletedFalse(
+        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
                 fridgeId,
                 targetStorageType,
                 targetName,
@@ -124,7 +124,7 @@ public class CategoryCommandService {
 
     @Transactional
     public void delete(Long fridgeId, Long categoryId) {
-        FridgeCategory category = repository.findByIdAndDeletedFalse(categoryId)
+        FridgeCategory category = repository.findById(categoryId)
                 .orElseThrow(() -> new ApiException(
                         CATEGORY_NOT_FOUND.code(),
                         CATEGORY_NOT_FOUND.message(),
@@ -139,6 +139,6 @@ public class CategoryCommandService {
             );
         }
 
-        category.softDelete();
+        repository.delete(category);
     }
 }

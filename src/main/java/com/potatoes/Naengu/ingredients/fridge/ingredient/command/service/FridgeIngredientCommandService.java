@@ -43,7 +43,7 @@ public class FridgeIngredientCommandService {
     }
 
     private void validateCategoryOwnedByFridge(Long fridgeId, Long categoryId) {
-        boolean exists = fridgeCategoryRepository.existsByIdAndFridgeIdAndDeletedFalse(categoryId, fridgeId);
+        boolean exists = fridgeCategoryRepository.existsByIdAndFridgeId(categoryId, fridgeId);
         if (!exists) {
             throw new ApiException(
                     FRIDGE_CATEGORY_NOT_FOUND.code(),
@@ -102,7 +102,7 @@ public class FridgeIngredientCommandService {
         if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
             throw new ApiException(
                     FRIDGE_INGREDIENT_FORBIDDEN.code(),
-                    FRIDGE_INGREDIENT_DUPLICATE.message(),
+                    FRIDGE_INGREDIENT_FORBIDDEN.message(),
                     FRIDGE_INGREDIENT_FORBIDDEN.status()
             );
         }

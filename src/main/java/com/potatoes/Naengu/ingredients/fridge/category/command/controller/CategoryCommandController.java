@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -54,9 +53,9 @@ public class CategoryCommandController {
     @DeleteMapping("/ingredients/categories/{fridgeCategoryId}")
     public ResponseEntity<Api<Void>> delete(
             @AuthFridgeId Long fridgeId,
-            @PathVariable Long categoryId
+            @PathVariable Long fridgeCategoryId
     ) {
-        service.delete(fridgeId, categoryId);
+        service.delete(fridgeId, fridgeCategoryId);
         return ResponseEntity.ok(Api.success());
     }
 
