@@ -41,10 +41,10 @@ public class CategoryCommandController {
     @PatchMapping("/ingredients/categories/{fridgeCategoryId}")
     public ResponseEntity<Api<UpdateCategoryResponse>> update(
             @AuthFridgeId Long fridgeId,
-            @PathVariable Long categoryId,
+            @PathVariable Long fridgeCategoryId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        Long updatedId = service.update(fridgeId, request.toCommand(categoryId));
+        Long updatedId = service.update(fridgeId, request.toCommand(fridgeCategoryId));
         return ResponseEntity.ok(
                 Api.success(new UpdateCategoryResponse(updatedId))
         );

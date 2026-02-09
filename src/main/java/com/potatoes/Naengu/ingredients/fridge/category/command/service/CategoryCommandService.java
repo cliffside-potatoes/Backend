@@ -6,6 +6,7 @@ import com.potatoes.Naengu.ingredients.fridge.category.command.command.CreateCat
 import com.potatoes.Naengu.ingredients.fridge.category.command.command.UpdateCategoryCommand;
 import com.potatoes.Naengu.ingredients.fridge.category.repository.FridgeCategoryRepository;
 import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
+import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,7 @@ public class CategoryCommandService {
 
         StorageType targetStorageType = resolveStorageType(command, category);
         String targetName = resolveName(command, category);
+        CategoryColor targetColor = resolveColor(command, category);
 
         if (command.name() != null && targetName.isBlank()) {
             throw new ApiException(
@@ -103,7 +105,7 @@ public class CategoryCommandService {
             );
         }
 
-        category.update(command.storageType(), command.name(), command.color());
+        category.update(targetStorageType, targetName, targetColor);
         return category.getId();
 
     }
@@ -120,6 +122,13 @@ public class CategoryCommandService {
             return command.name();
         }
         return category.getName();
+    }
+
+    private CategoryColor resolveColor(UpdateCategoryCommand command, FridgeCategory category) {
+        if (command.color() != null) {
+            return command.color();
+        }
+        return category.getColor();
     }
 
     @Transactional
