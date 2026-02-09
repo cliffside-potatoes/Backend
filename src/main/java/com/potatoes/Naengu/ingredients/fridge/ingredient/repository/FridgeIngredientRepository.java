@@ -10,4 +10,13 @@ public interface FridgeIngredientRepository extends JpaRepository<FridgeIngredie
             Long fridgeCategoryId,
             Long ingredientId
     );
+
+    boolean existsByFridgeIdAndFridgeCategoryIdAndIngredientIdAndDeletedFalseAndIdNot(
+            Long fridgeId,
+            Long fridgeCategoryId,
+            Long ingredientId,
+            Long id
+    );
+
+
 }

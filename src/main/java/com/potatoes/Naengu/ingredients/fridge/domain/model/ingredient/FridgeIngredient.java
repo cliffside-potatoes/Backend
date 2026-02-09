@@ -61,5 +61,13 @@ public class FridgeIngredient {
         return entity;
     }
 
+    public void update(Long fridgeCategoryId, Long ingredientId) {
+        if (fridgeCategoryId != null) {
+            this.fridgeCategoryId = fridgeCategoryId;
+        }
+        if (ingredientId != null) {
+            this.ingredientId = ingredientId;
+        }
+    }
 
 }

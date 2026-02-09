@@ -39,7 +39,7 @@ public class CategoryCommandController {
                 .body(Api.success(new CreateCategoryResponse(id)));
     }
 
-    @PatchMapping("/ingredients/categories/{categoryId}")
+    @PatchMapping("/ingredients/categories/{fridgeCategoryId}")
     public ResponseEntity<Api<UpdateCategoryResponse>> update(
             @AuthFridgeId Long fridgeId,
             @PathVariable Long categoryId,
@@ -51,7 +51,7 @@ public class CategoryCommandController {
         );
     }
 
-    @DeleteMapping("/ingredients/categories/{categoryId}")
+    @DeleteMapping("/ingredients/categories/{fridgeCategoryId}")
     public ResponseEntity<Api<Void>> delete(
             @AuthFridgeId Long fridgeId,
             @PathVariable Long categoryId
