@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.oauth.kakao.controller;
 
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
+import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -27,8 +28,9 @@ public class KakaoController {
     ){
         String authCode = code;
         KakaoTokenResponse tokenResponse = getAccessToken(authCode);
+        // 사용자 정보 응답
+        KakaoUserInfoResponse userInfo = getUserInfo(tokenResponse.accessToken());
 
-        System.out.println("Kakao token response2 = " + tokenResponse);
     }
 
     //service로 추후 분리
@@ -66,7 +68,24 @@ public class KakaoController {
                         httpEntity,
                         KakaoTokenResponse.class);
 
+        return response.getBody();
+    }
 
+    private KakaoUserInfoResponse getUserInfo(String accessToken){
+        final String BEARER_TOKEN_PREFIX = "bearer ";
+        // 헤더
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+        headers.add("Authorization", BEARER_TOKEN_PREFIX + accessToken);
+        // Http요청 객체
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(headers);
+        // Kakao API 호출
+        ResponseEntity<KakaoUserInfoResponse> response =
+                new RestTemplate().exchange(
+                        "https://kapi.kakao.com/v2/user/me",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        KakaoUserInfoResponse.class);
 
         return response.getBody();
     }
