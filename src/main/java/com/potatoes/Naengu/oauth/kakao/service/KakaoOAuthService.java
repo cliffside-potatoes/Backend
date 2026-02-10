@@ -1,7 +1,10 @@
 package com.potatoes.Naengu.oauth.kakao.service;
 
+import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
+import com.potatoes.Naengu.oauth.kakao.dto.LoginResponse;
+import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -28,6 +31,8 @@ public class KakaoOAuthService {
 
     @Value("${kakao.oauth.redirect-uri}")
     private String kakaoRedirectUri;
+
+    private final UserRepository userRepository;
 
     private static final String TOKEN_URL = "https://kauth.kakao.com/oauth/token";
     private static final String USER_INFO_URL = "https://kapi.kakao.com/v2/user/me";
@@ -104,26 +109,27 @@ public class KakaoOAuthService {
         return userInfo;
     }
 
-//    //3. 카카오ID로 회원가입 & 로그인 처리
-//    private LoginResponse kakaoUserLogin(HashMap<String, Object> userInfo){
-//
-//        Long uid= Long.valueOf(userInfo.get("id").toString());
-//        String kakaoEmail = userInfo.get("email").toString();
-//        String nickName = userInfo.get("nickname").toString();
-//
-//        User kakaoUser = userRepository.findByEmail(kakaoEmail).orElse(null);
-//
-//        if (kakaoUser == null) {    //회원가입
-//            kakaoUser= new User();
-//            kakaoUser.setUid(uid);
-//            kakaoUser.setNickname(nickName);
-//            kakaoUser.setEmail(kakaoEmail);
-//            kakaoUser.setLoginType("kakao");
-//            userRepository.save(kakaoUser);
-//        }
-//        //토큰 생성
-//        AuthTokens token=authTokensGenerator.generate(uid.toString());
-//        return new LoginResponse(uid,nickName,kakaoEmail,token);
-//    }
+    //3. 카카오ID로 회원가입 & 로그인 처리
+    public LoginResponse kakaoUserLogin(Map<String, Object> userInfo){
+
+        Long providerId= Long.valueOf(userInfo.get("id").toString());
+        String nickName = userInfo.get("nickname").toString();
+
+        UserEntity kakaoUser = userRepository.findByProviderId(providerId).orElse(null);
+
+        if (kakaoUser == null) {    //회원가입
+            kakaoUser= new UserEntity();
+            kakaoUser.setProviderId(providerId);
+            kakaoUser.setNickName(nickName);
+            userRepository.save(kakaoUser);
+        }
+
+        System.out.println("DB에 저장되었습니다.");
+
+        //토큰 생성
+        //AuthTokens token=authTokensGenerator.generate(uid.toString());
+        //return new LoginResponse(uid,nickName,kakaoEmail,token);
+        return null;
+    }
 
 }
