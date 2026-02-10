@@ -2,6 +2,7 @@ package com.potatoes.Naengu.oauth.kakao.controller;
 
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
+import com.potatoes.Naengu.oauth.kakao.service.KakaoOAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -19,6 +20,8 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 public class KakaoController {
 
+    private final KakaoOAuthService kakaoOAuthService;
+
     @GetMapping("/oauth/kakao/auth-code")
     public void loginForm(
             @RequestParam(required = false) String code,
@@ -27,66 +30,12 @@ public class KakaoController {
             @RequestParam(required = false) String state
     ){
         String authCode = code;
-        KakaoTokenResponse tokenResponse = getAccessToken(authCode);
+        KakaoTokenResponse tokenResponse = kakaoOAuthService.getAccessToken(authCode);
         // 사용자 정보 응답
-        KakaoUserInfoResponse userInfo = getUserInfo(tokenResponse.accessToken());
+        KakaoUserInfoResponse userInfo = kakaoOAuthService.getUserInfo(tokenResponse.accessToken());
 
+        System.out.println("디버깅중 >> "+ userInfo);
     }
 
-    //service로 추후 분리
-    @Value("${kakao.oauth.client-id}")
-    private String kakaoClientId;
 
-    @Value("${kakao.oauth.client-secret}")
-    private String kakaoClientSecret;
-
-    @Value("${kakao.oauth.redirect-uri}")
-    private String kakaoRedirectUri;
-
-
-
-    private KakaoTokenResponse getAccessToken(String authCode) {
-
-        // 헤더
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-        // body
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("client_id", kakaoClientId);
-        body.add("redirect_uri", kakaoRedirectUri);
-        body.add("code", authCode);
-        body.add("client_secret", kakaoClientSecret);
-        // Http요청 객체
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(body, headers);
-
-        // Kakao API 호출
-        ResponseEntity<KakaoTokenResponse> response =
-                new RestTemplate().exchange(
-                        "https://kauth.kakao.com/oauth/token",
-                        HttpMethod.POST,
-                        httpEntity,
-                        KakaoTokenResponse.class);
-
-        return response.getBody();
-    }
-
-    private KakaoUserInfoResponse getUserInfo(String accessToken){
-        final String BEARER_TOKEN_PREFIX = "bearer ";
-        // 헤더
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-        headers.add("Authorization", BEARER_TOKEN_PREFIX + accessToken);
-        // Http요청 객체
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(headers);
-        // Kakao API 호출
-        ResponseEntity<KakaoUserInfoResponse> response =
-                new RestTemplate().exchange(
-                        "https://kapi.kakao.com/v2/user/me",
-                        HttpMethod.GET,
-                        new HttpEntity<>(headers),
-                        KakaoUserInfoResponse.class);
-
-        return response.getBody();
-    }
 }
