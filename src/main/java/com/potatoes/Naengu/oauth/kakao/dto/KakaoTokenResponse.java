@@ -1,6 +1,9 @@
 package com.potatoes.Naengu.oauth.kakao.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.ToString;
+
 
 public record KakaoTokenResponse (
         @JsonProperty("access_token")

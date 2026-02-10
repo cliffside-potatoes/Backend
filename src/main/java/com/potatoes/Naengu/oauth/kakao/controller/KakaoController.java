@@ -2,6 +2,7 @@ package com.potatoes.Naengu.oauth.kakao.controller;
 
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,26 +27,37 @@ public class KakaoController {
     ){
         String authCode = code;
         KakaoTokenResponse tokenResponse = getAccessToken(authCode);
+
+        System.out.println("Kakao token response2 = " + tokenResponse);
     }
 
-    //이거 service로 빼기
+    //service로 추후 분리
+    @Value("${kakao.oauth.client-id}")
+    private String kakaoClientId;
+
+    @Value("${kakao.oauth.client-secret}")
+    private String kakaoClientSecret;
+
+    @Value("${kakao.oauth.redirect-uri}")
+    private String kakaoRedirectUri;
+
+
 
     private KakaoTokenResponse getAccessToken(String authCode) {
-        final String KAKAO_CLIENT_ID = "my-client-id";
-        final String KAKAO_CLIENT_SECRET = "my-client-secret";
-        final String REDIRECT_URI = "http://localhost:8080/kakao/auth-code";
+
         // 헤더
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
         // body
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
-        body.add("client_id", KAKAO_CLIENT_ID);
-        body.add("redirect_uri", REDIRECT_URI);
+        body.add("client_id", kakaoClientId);
+        body.add("redirect_uri", kakaoRedirectUri);
         body.add("code", authCode);
-        body.add("client_secret", KAKAO_CLIENT_SECRET);
+        body.add("client_secret", kakaoClientSecret);
         // Http요청 객체
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(body, headers);
+
         // Kakao API 호출
         ResponseEntity<KakaoTokenResponse> response =
                 new RestTemplate().exchange(
@@ -53,6 +65,8 @@ public class KakaoController {
                         HttpMethod.POST,
                         httpEntity,
                         KakaoTokenResponse.class);
+
+
 
         return response.getBody();
     }
