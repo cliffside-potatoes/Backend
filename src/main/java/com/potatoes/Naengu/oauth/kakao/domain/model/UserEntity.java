@@ -1,4 +1,4 @@
-package com.potatoes.Naengu.auth.domain.model;
+package com.potatoes.Naengu.oauth.kakao.domain.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +17,6 @@ public class UserEntity {
 
     private String providerId;
 
-    private String email;
+    private String nickName;
 
-    private String role;
 }

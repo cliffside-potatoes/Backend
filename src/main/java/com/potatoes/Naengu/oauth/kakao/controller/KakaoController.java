@@ -4,17 +4,12 @@ import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
 import com.potatoes.Naengu.oauth.kakao.service.KakaoOAuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+
 
 @RequiredArgsConstructor
 @RestController
@@ -32,7 +27,7 @@ public class KakaoController {
         String authCode = code;
         KakaoTokenResponse tokenResponse = kakaoOAuthService.getAccessToken(authCode);
         // 사용자 정보 응답
-        KakaoUserInfoResponse userInfo = kakaoOAuthService.getUserInfo(tokenResponse.accessToken());
+        Map<String, Object> userInfo = kakaoOAuthService.getUserInfo(tokenResponse.accessToken());
 
         System.out.println("디버깅중 >> "+ userInfo);
     }

@@ -13,6 +13,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
 public class KakaoOAuthService {
@@ -56,7 +60,7 @@ public class KakaoOAuthService {
         return response.getBody();
     }
 
-    public KakaoUserInfoResponse getUserInfo(String accessToken) {
+    public Map<String, Object> getUserInfo(String accessToken) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken);
@@ -69,6 +73,57 @@ public class KakaoOAuthService {
                         KakaoUserInfoResponse.class
                 );
 
-        return response.getBody();
+        Map<String, Object> userInfo = extractUserInfoAsMap(response.getBody());
+
+
+        return userInfo;
     }
+
+    public Map<String, Object> extractUserInfoAsMap(KakaoUserInfoResponse kakao) {
+
+        Map<String, Object> userInfo = new HashMap<>();
+
+        userInfo.put("id", kakao.id());
+
+        // 1) id (항상 핵심 식별자)
+        userInfo.put("id", kakao.id());
+
+        // 2) nickname (kakao_account.profile.nickname 우선, 없으면 properties.nickname fallback)
+        String nickname =
+                Optional.ofNullable(kakao.kakaoAccount())
+                        .map(KakaoUserInfoResponse.KakaoAccount::profile)
+                        .map(KakaoUserInfoResponse.KakaoAccount.Profile::nickname)
+                        .orElseGet(() -> {
+                            if (kakao.properties() == null) return null;
+                            Object n = kakao.properties().get("nickname");
+                            return n != null ? String.valueOf(n) : null;
+                        });
+
+        userInfo.put("nickname", nickname);
+
+        return userInfo;
+    }
+
+//    //3. 카카오ID로 회원가입 & 로그인 처리
+//    private LoginResponse kakaoUserLogin(HashMap<String, Object> userInfo){
+//
+//        Long uid= Long.valueOf(userInfo.get("id").toString());
+//        String kakaoEmail = userInfo.get("email").toString();
+//        String nickName = userInfo.get("nickname").toString();
+//
+//        User kakaoUser = userRepository.findByEmail(kakaoEmail).orElse(null);
+//
+//        if (kakaoUser == null) {    //회원가입
+//            kakaoUser= new User();
+//            kakaoUser.setUid(uid);
+//            kakaoUser.setNickname(nickName);
+//            kakaoUser.setEmail(kakaoEmail);
+//            kakaoUser.setLoginType("kakao");
+//            userRepository.save(kakaoUser);
+//        }
+//        //토큰 생성
+//        AuthTokens token=authTokensGenerator.generate(uid.toString());
+//        return new LoginResponse(uid,nickName,kakaoEmail,token);
+//    }
+
 }
