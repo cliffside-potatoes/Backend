@@ -9,6 +9,7 @@ import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCatego
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,7 +87,7 @@ public class CategoryCommandService {
             throw new ApiException(
                     "VALIDATION_ERROR",
                     "name은 공백일 수 없습니다.",
-                    org.springframework.http.HttpStatus.BAD_REQUEST
+                    HttpStatus.BAD_REQUEST
             );
         }
 
