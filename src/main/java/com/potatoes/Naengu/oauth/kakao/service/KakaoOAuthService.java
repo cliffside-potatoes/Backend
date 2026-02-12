@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.oauth.kakao.service;
 
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
+import com.potatoes.Naengu.oauth.kakao.dto.AuthTokens;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.LoginResponse;
@@ -33,10 +34,13 @@ public class KakaoOAuthService {
     private String kakaoRedirectUri;
 
     private final UserRepository userRepository;
+    private final AuthTokensGenerator authTokensGenerator;
 
     private static final String TOKEN_URL = "https://kauth.kakao.com/oauth/token";
     private static final String USER_INFO_URL = "https://kapi.kakao.com/v2/user/me";
     private static final String BEARER_PREFIX = "Bearer ";
+
+
 
     public KakaoTokenResponse getAccessToken(String authCode) {
 
@@ -124,12 +128,19 @@ public class KakaoOAuthService {
             userRepository.save(kakaoUser);
         }
 
-        System.out.println("DB에 저장되었습니다.");
-
         //토큰 생성
-        //AuthTokens token=authTokensGenerator.generate(uid.toString());
-        //return new LoginResponse(uid,nickName,kakaoEmail,token);
-        return null;
+        AuthTokens token=authTokensGenerator.generate(providerId.toString());
+
+        return new LoginResponse(providerId,nickName,token);
+        //return null;
+    }
+
+    public String buildKakaoLoginUrl() {
+
+        return "https://kauth.kakao.com/oauth/authorize"
+                + "?response_type=code"
+                + "&client_id=" + kakaoClientId
+                + "&redirect_uri=" + kakaoRedirectUri;
     }
 
 }
