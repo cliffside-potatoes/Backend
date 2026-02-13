@@ -1,12 +1,13 @@
 package com.potatoes.Naengu.oauth.kakao.service;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 
@@ -22,6 +23,13 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    public String resolveBearerToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header == null) return null;
+        if (header.startsWith("Bearer ")) return header.substring(7);
+        return null;
+    }
+
     public String accessTokenGenerate(String subject, Date expiredAt) {
         return Jwts.builder()
                 .setSubject(subject)	//uid
@@ -35,4 +43,40 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
+
+    public void validateToken(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith((SecretKey) key)
+                    .build()
+                    .parseSignedClaims(token);
+        } catch (ExpiredJwtException e) {
+            //throw new GlobalException(GlobalErrorCode.AUTH_EXPIRED_TOKEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            //throw new GlobalException(GlobalErrorCode.AUTH_INVALID_TOKEN);
+        }
+    }
+
+    public Long getMemberId(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith((SecretKey) key)              // 서명 검증 키
+                    .build()
+                    .parseSignedClaims(token)     // 서명된 JWT 파싱
+                    .getPayload();
+
+            String subject = claims.getSubject();
+            if (subject == null || subject.isBlank()) {
+                //throw new GlobalException(GlobalErrorCode.AUTH_INVALID_TOKEN);
+            }
+            return Long.valueOf(subject);
+
+        } catch (ExpiredJwtException e) {
+            //throw new GlobalException(GlobalErrorCode.AUTH_EXPIRED_TOKEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            //throw new GlobalException(GlobalErrorCode.AUTH_INVALID_TOKEN);
+        }
+        return null;
+    }
+
 }

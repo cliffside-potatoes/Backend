@@ -28,7 +28,7 @@ public class KakaoController {
     public void redirectToKakao(HttpServletResponse response) throws IOException {
 
         String kakaoAuthUrl = kakaoOAuthService.buildKakaoLoginUrl();
-        System.out.println("확인중입니다.");
+
         response.sendRedirect(kakaoAuthUrl);
     }
 
