@@ -29,7 +29,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 로그인/회원가입/카카오 콜백 열어두기
-                        .requestMatchers("/oauth/**","/login", "/healthcheck").permitAll()
+                        .requestMatchers("/oauth/**","/login", "/healthcheck","/presigned").permitAll()
                         // 인증 필요
                         .anyRequest().authenticated()
                 );
