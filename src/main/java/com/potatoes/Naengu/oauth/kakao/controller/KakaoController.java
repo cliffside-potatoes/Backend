@@ -68,7 +68,8 @@ public class KakaoController {
                         kakaoUserResponse.getNickname(),
                         "Bearer",
                         kakaoUserResponse.getToken().getAccessToken(),
-                        3600L
+                        3600L,
+                        kakaoUserResponse.isNewMember()
                 );
 
 

@@ -113,6 +113,8 @@ public class KakaoOAuthService {
         return userInfo;
     }
 
+
+
     //3. 카카오ID로 회원가입 & 로그인 처리
     public LoginResponse kakaoUserLogin(Map<String, Object> userInfo){
 
@@ -121,7 +123,9 @@ public class KakaoOAuthService {
 
         UserEntity kakaoUser = userRepository.findByProviderId(providerId).orElse(null);
 
+        boolean isNewMember = false;
         if (kakaoUser == null) {    //회원가입
+            isNewMember = true;
             kakaoUser= new UserEntity();
             kakaoUser.setProviderId(providerId);
             kakaoUser.setNickName(nickName);
@@ -131,7 +135,7 @@ public class KakaoOAuthService {
         //토큰 생성
         AuthTokens token=authTokensGenerator.generate(providerId.toString());
 
-        return new LoginResponse(providerId,nickName,token);
+        return new LoginResponse(providerId,nickName,token,isNewMember);
         //return null;
     }
 
