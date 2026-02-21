@@ -10,17 +10,21 @@ public class LoginSuccessResponse {
     private String nickname;
     private String accessToken;
     long expiresIn;
+    private boolean isNewMember;
     String grantType;
 
     public LoginSuccessResponse(Long id,
                                 String nickname,
                                 String grantType,
                                 String accessToken,
-                                long expiresIn) {
+                                long expiresIn,
+                                boolean isNewMember
+    ) {
         this.id = id;
         this.nickname = nickname;
         this.grantType = grantType;
         this.accessToken = accessToken;
         this.expiresIn = expiresIn;
+        this.isNewMember = isNewMember;
     }
 }
