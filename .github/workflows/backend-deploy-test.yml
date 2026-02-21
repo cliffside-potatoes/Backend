@@ -1,8 +1,8 @@
-name: Java CI/CD with Gradle - Main
+name: Java CI/CD with Gradle - Dev
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   build:
@@ -35,20 +35,20 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/naeng-gu-backend:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/naeng-gu-backend:latest
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/naeng-gu-backend:test .
+        docker push ${{ secrets.DOCKER_USERNAME }}/naeng-gu-backend:test
 
-  deploy: 
-      needs: build  
-      runs-on: ubuntu-latest
-      steps:
-        - name: Deploy to server via SSH
-          uses: appleboy/ssh-action@v0.1.7
-          with:
-            host: ${{ secrets.EC2_HOST }}
-            username: ${{ secrets.EC2_USERNAME }} 
-            key: ${{ secrets.EC2_SSH_KEY }} 
-            script: | 
-              cd ~/naeng-gu/infra/docker 
-              sudo docker compose pull backend 
-              sudo docker compose up -d backend 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/naeng-gu/infra/docker 
+            sudo docker compose pull backend-test 
+            sudo docker compose up -d backend-test
