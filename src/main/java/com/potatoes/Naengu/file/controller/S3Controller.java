@@ -33,6 +33,7 @@ public class S3Controller {
         // S3 내 저장될 폴더 경로
         String path = switch(type){
             case "post" -> "public/post";
+            case "profile" -> "public/profile";
             //아래에 더 추가하기
             default -> throw new IllegalArgumentException("지원하지 않는 type");
 
