@@ -20,7 +20,7 @@ public class ProfileService {
 
     @Transactional
     public ProfileUpsertResponse upsert(Long userId, ProfileUpsertRequest req){
-        //profile.userEntity.id
+        //profile.userEntity.providerId
         Profile profile = profileRepository.findByUserEntityProviderId(userId).orElse(null);
 
         if(profile == null){
