@@ -2,6 +2,7 @@ package com.potatoes.Naengu.ingredients.fridge.category.repository;
 
 import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -29,5 +30,5 @@ public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, 
             """)
     int findMaxOrderIndexByFridgeIdAndStorageType(Long fridgeId, StorageType storageType);
 
-    boolean existsByIdAndFridgeId(Long id, Long fridgeId);
+    Optional<FridgeCategory> findByIdAndFridgeId(Long id, Long fridgeId);
 }

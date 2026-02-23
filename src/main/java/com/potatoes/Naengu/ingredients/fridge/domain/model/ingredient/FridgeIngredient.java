@@ -1,11 +1,15 @@
 package com.potatoes.Naengu.ingredients.fridge.domain.model.ingredient;
 
+import com.potatoes.Naengu.ingredients.dictionary.ingredient.domain.Ingredient;
+import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -17,7 +21,8 @@ import org.hibernate.annotations.SoftDelete;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @SoftDelete
-@Table(name = "fridge_ingredient",
+@Table(
+        name = "fridge_ingredient",
         indexes = {
                 @Index(
                         name = "idx_fridge_ingredient_fridge",
@@ -38,35 +43,45 @@ public class FridgeIngredient {
     @Column(name = "fridge_id", nullable = false)
     private Long fridgeId;
 
-    @Column(name = "fridge_category_id", nullable = false)
-    private Long fridgeCategoryId;
+    @ManyToOne
+    @JoinColumn(name = "fridge_category_id", nullable = false)
+    private FridgeCategory fridgeCategory;
 
-    @Column(name = "ingredient_id", nullable = false)
-    private Long ingredientId;
+    @ManyToOne
+    @JoinColumn(name = "ingredient_id", nullable = false)
+    private Ingredient ingredient;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false,updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public static FridgeIngredient create(Long fridgeId, Long categoryId, Long ingredientId) {
-        FridgeIngredient entity = new FridgeIngredient();
-        entity.fridgeId = fridgeId;
-        entity.fridgeCategoryId = categoryId;
-        entity.ingredientId = ingredientId;
-        entity.createdAt = LocalDateTime.now();
-        entity.updatedAt = LocalDateTime.now();
-        return entity;
+    private FridgeIngredient(
+            Long fridgeId,
+            FridgeCategory fridgeCategory,
+            Ingredient ingredient
+    ) {
+        this.fridgeId = fridgeId;
+        this.fridgeCategory = fridgeCategory;
+        this.ingredient = ingredient;
+
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public void update(Long fridgeCategoryId, Long ingredientId) {
-        if (fridgeCategoryId != null) {
-            this.fridgeCategoryId = fridgeCategoryId;
+    public static FridgeIngredient create(Long fridgeId, FridgeCategory fridgeCategory, Ingredient ingredient) {
+        return new FridgeIngredient(fridgeId, fridgeCategory, ingredient);
+    }
+
+    public void update(FridgeCategory newFridgeCategory, Ingredient newIngredient) {
+        if (newFridgeCategory != null) {
+            this.fridgeCategory = newFridgeCategory;
         }
-        if (ingredientId != null) {
-            this.ingredientId = ingredientId;
+        if (newIngredient != null) {
+            this.ingredient = newIngredient;
         }
+        this.updatedAt = LocalDateTime.now();
     }
 
 }

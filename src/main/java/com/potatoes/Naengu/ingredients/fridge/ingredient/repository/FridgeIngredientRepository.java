@@ -5,13 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FridgeIngredientRepository extends JpaRepository<FridgeIngredient, Long> {
 
-    boolean existsByFridgeIdAndFridgeCategoryIdAndIngredientId(
+    boolean existsByFridgeIdAndFridgeCategory_IdAndIngredient_Id(
             Long fridgeId,
             Long fridgeCategoryId,
             Long ingredientId
     );
 
-    boolean existsByFridgeIdAndFridgeCategoryIdAndIngredientIdAndIdNot(
+    boolean existsByFridgeIdAndFridgeCategory_IdAndIngredient_IdAndIdNot(
             Long fridgeId,
             Long fridgeCategoryId,
             Long ingredientId,

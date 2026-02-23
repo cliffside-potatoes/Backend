@@ -1,9 +1,12 @@
 package com.potatoes.Naengu.ingredients.fridge.ingredient.command.service;
 
+import static com.potatoes.Naengu.ingredients.dictionary.ingredient.exception.IngredientErrorCode.INGREDIENT_NOT_FOUND;
 import static com.potatoes.Naengu.ingredients.fridge.ingredient.command.exception.FridgeIngredientErrorCode.*;
 
+import com.potatoes.Naengu.ingredients.dictionary.ingredient.domain.Ingredient;
 import com.potatoes.Naengu.ingredients.dictionary.ingredient.repository.IngredientRepository;
 import com.potatoes.Naengu.ingredients.fridge.category.repository.FridgeCategoryRepository;
+import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
 import com.potatoes.Naengu.ingredients.fridge.domain.model.ingredient.FridgeIngredient;
 import com.potatoes.Naengu.ingredients.fridge.ingredient.command.command.CreateFridgeIngredientCommand;
 import com.potatoes.Naengu.ingredients.fridge.ingredient.command.command.UpdateFridgeIngredientCommand;
@@ -19,9 +22,11 @@ public class FridgeIngredientCommandService {
     private final IngredientRepository ingredientRepository;
     private final FridgeCategoryRepository fridgeCategoryRepository;
 
-    public FridgeIngredientCommandService(FridgeIngredientRepository fridgeIngredientRepository,
-                                          IngredientRepository ingredientRepository,
-                                          FridgeCategoryRepository fridgeCategoryRepository) {
+    public FridgeIngredientCommandService(
+            FridgeIngredientRepository fridgeIngredientRepository,
+            IngredientRepository ingredientRepository,
+            FridgeCategoryRepository fridgeCategoryRepository
+    ) {
         this.fridgeIngredientRepository = fridgeIngredientRepository;
         this.ingredientRepository = ingredientRepository;
         this.fridgeCategoryRepository = fridgeCategoryRepository;
@@ -29,103 +34,108 @@ public class FridgeIngredientCommandService {
 
     @Transactional
     public Long create(Long fridgeId, CreateFridgeIngredientCommand command) {
-        validateCategoryOwnedByFridge(fridgeId, command.categoryId());
-        validateIngredientExists(command.ingredientId());
-        validateNotDuplicated(fridgeId, command);
+        FridgeCategory category = loadOwnedCategory(fridgeId, command.categoryId());
+        Ingredient ingredient = loadIngredient(command.ingredientId());
 
-        FridgeIngredient entity = FridgeIngredient.create(
-                fridgeId,
-                command.categoryId(),
-                command.ingredientId()
-        );
+        ensureNotDuplicated(fridgeId, category.getId(), ingredient.getId());
 
+        FridgeIngredient entity = FridgeIngredient.create(fridgeId, category, ingredient);
         return fridgeIngredientRepository.save(entity).getId();
-    }
-
-    private void validateCategoryOwnedByFridge(Long fridgeId, Long categoryId) {
-        boolean exists = fridgeCategoryRepository.existsByIdAndFridgeId(categoryId, fridgeId);
-        if (!exists) {
-            throw new ApiException(FRIDGE_CATEGORY_NOT_FOUND);
-        }
-    }
-
-    private void validateIngredientExists(Long ingredientId) {
-        boolean exists = ingredientRepository.existsById(ingredientId);
-        if (!exists) {
-            throw new ApiException(FRIDGE_INGREDIENT_NOT_FOUND);
-        }
-    }
-
-    private void validateNotDuplicated(Long fridgeId, CreateFridgeIngredientCommand command) {
-        boolean duplicated = fridgeIngredientRepository
-                .existsByFridgeIdAndFridgeCategoryIdAndIngredientId(
-                        fridgeId,
-                        command.categoryId(),
-                        command.ingredientId()
-                );
-
-        if (duplicated) {
-            throw new ApiException(FRIDGE_INGREDIENT_DUPLICATE);
-
-        }
     }
 
     @Transactional
     public Long update(Long fridgeId, UpdateFridgeIngredientCommand command) {
-        if (!command.hasAnyChange()) {
-            throw new ApiException(FRIDGE_INGREDIENT_UPDATE_EMPTY);
-        }
+        ensureHasAnyChange(command);
 
-        FridgeIngredient fridgeIngredient = fridgeIngredientRepository.findById(command.fridgeIngredientId())
-                .orElseThrow(() -> new ApiException(FRIDGE_INGREDIENT_NOT_FOUND));
+        FridgeIngredient fridgeIngredient = loadFridgeIngredient(command.fridgeIngredientId());
+        ensureOwnedByFridge(fridgeId, fridgeIngredient);
 
-        if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(FRIDGE_INGREDIENT_FORBIDDEN);
-        }
+        FridgeCategory targetCategory = resolveTargetCategory(fridgeId, command, fridgeIngredient);
+        Ingredient targetIngredient = resolveTargetIngredient(command, fridgeIngredient);
 
-        Long targetCategoryId = resolveCategoryId(command, fridgeIngredient);
-        Long targetIngredientId = resolveIngredientId(command, fridgeIngredient);
-
-        boolean duplicate = fridgeIngredientRepository.existsByFridgeIdAndFridgeCategoryIdAndIngredientIdAndIdNot(
+        ensureNotDuplicatedExcludingSelf(
                 fridgeId,
-                targetCategoryId,
-                targetIngredientId,
+                targetCategory.getId(),
+                targetIngredient.getId(),
                 fridgeIngredient.getId()
         );
 
-        if (duplicate) {
-            throw new ApiException(FRIDGE_INGREDIENT_DUPLICATE);
-        }
-
-        fridgeIngredient.update(targetCategoryId, targetIngredientId);
+        fridgeIngredient.update(targetCategory, targetIngredient);
         return fridgeIngredient.getId();
-
-    }
-
-    private Long resolveCategoryId(UpdateFridgeIngredientCommand command, FridgeIngredient fridgeIngredient) {
-        if (command.fridgeCategoryId() != null) {
-            return command.fridgeCategoryId();
-        }
-        return fridgeIngredient.getFridgeCategoryId();
-    }
-
-    private Long resolveIngredientId(UpdateFridgeIngredientCommand command, FridgeIngredient fridgeIngredient) {
-        if (command.ingredientId() != null) {
-            return command.ingredientId();
-        }
-        return fridgeIngredient.getIngredientId();
-
     }
 
     @Transactional
     public void delete(Long fridgeId, Long fridgeIngredientId) {
-        FridgeIngredient fridgeIngredient = fridgeIngredientRepository.findById(fridgeIngredientId)
-                .orElseThrow(() -> new ApiException(FRIDGE_INGREDIENT_NOT_FOUND));
-
-        if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(FRIDGE_INGREDIENT_FORBIDDEN);
-        }
+        FridgeIngredient fridgeIngredient = loadFridgeIngredient(fridgeIngredientId);
+        ensureOwnedByFridge(fridgeId, fridgeIngredient);
 
         fridgeIngredientRepository.delete(fridgeIngredient);
+    }
+
+    private FridgeCategory loadOwnedCategory(Long fridgeId, Long categoryId) {
+        return fridgeCategoryRepository.findByIdAndFridgeId(categoryId, fridgeId)
+                .orElseThrow(() -> new ApiException(FRIDGE_CATEGORY_NOT_FOUND));
+    }
+
+    private Ingredient loadIngredient(Long ingredientId) {
+        return ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new ApiException(INGREDIENT_NOT_FOUND));
+    }
+
+    private FridgeIngredient loadFridgeIngredient(Long fridgeIngredientId) {
+        return fridgeIngredientRepository.findById(fridgeIngredientId)
+                .orElseThrow(() -> new ApiException(FRIDGE_INGREDIENT_NOT_FOUND));
+    }
+
+    private void ensureHasAnyChange(UpdateFridgeIngredientCommand command) {
+        if (command.hasAnyChange()) {
+            return;
+        }
+        throw new ApiException(FRIDGE_INGREDIENT_UPDATE_EMPTY);
+    }
+
+    private void ensureOwnedByFridge(Long fridgeId, FridgeIngredient fridgeIngredient) {
+        if (fridgeIngredient.getFridgeId().equals(fridgeId)) {
+            return;
+        }
+        throw new ApiException(FRIDGE_INGREDIENT_FORBIDDEN);
+    }
+
+    private FridgeCategory resolveTargetCategory(
+            Long fridgeId,
+            UpdateFridgeIngredientCommand command,
+            FridgeIngredient fridgeIngredient
+    ) {
+        if (command.fridgeCategoryId() == null) {
+            return fridgeIngredient.getFridgeCategory();
+        }
+        return loadOwnedCategory(fridgeId, command.fridgeCategoryId());
+    }
+
+    private Ingredient resolveTargetIngredient(UpdateFridgeIngredientCommand command, FridgeIngredient fridgeIngredient) {
+        if (command.ingredientId() == null) {
+            return fridgeIngredient.getIngredient();
+        }
+        return loadIngredient(command.ingredientId());
+    }
+
+    private void ensureNotDuplicated(Long fridgeId, Long categoryId, Long ingredientId) {
+        boolean duplicated = fridgeIngredientRepository
+                .existsByFridgeIdAndFridgeCategory_IdAndIngredient_Id(fridgeId, categoryId, ingredientId);
+
+        if (!duplicated) {
+            return;
+        }
+        throw new ApiException(FRIDGE_INGREDIENT_DUPLICATE);
+    }
+
+    private void ensureNotDuplicatedExcludingSelf(Long fridgeId, Long categoryId, Long ingredientId, Long selfId) {
+        boolean duplicated = fridgeIngredientRepository
+                .existsByFridgeIdAndFridgeCategory_IdAndIngredient_IdAndIdNot(fridgeId, categoryId, ingredientId, selfId);
+
+        if (!duplicated) {
+            return;
+        }
+        throw new ApiException(FRIDGE_INGREDIENT_DUPLICATE);
     }
 }

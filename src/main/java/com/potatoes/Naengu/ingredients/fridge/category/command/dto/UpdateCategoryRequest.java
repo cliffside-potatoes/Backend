@@ -3,7 +3,6 @@ package com.potatoes.Naengu.ingredients.fridge.category.command.dto;
 import com.potatoes.Naengu.ingredients.fridge.category.command.command.UpdateCategoryCommand;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
-import com.potatoes.Naengu.ingredients.shared.validation.EnumValue;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,29 +14,20 @@ import tools.jackson.databind.annotation.JsonNaming;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UpdateCategoryRequest {
 
-    @EnumValue(enumClass = StorageType.class, ignoreCase = true)
-    private String storageType;
+    private StorageType storageType;
 
     @Size(min = 1, max = 20)
     private String name;
 
-    @EnumValue(enumClass = CategoryColor.class, ignoreCase = true)
-    private String color;
+    private CategoryColor color;
 
     public UpdateCategoryCommand toCommand(Long categoryId) {
         return new UpdateCategoryCommand(
                 categoryId,
-                parseStorageType(),
+                storageType,
                 parseName(),
-                parseColor()
+                color
         );
-    }
-
-    private StorageType parseStorageType() {
-        if (storageType == null) {
-            return null;
-        }
-        return StorageType.valueOf(storageType.trim().toUpperCase());
     }
 
     private String parseName() {
@@ -46,13 +36,4 @@ public class UpdateCategoryRequest {
         }
         return name.trim();
     }
-
-    private CategoryColor parseColor() {
-        if (color == null) {
-            return null;
-        }
-        return CategoryColor.valueOf(color.trim().toUpperCase());
-    }
-
-
 }

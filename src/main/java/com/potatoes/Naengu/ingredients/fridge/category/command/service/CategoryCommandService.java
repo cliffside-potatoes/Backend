@@ -23,19 +23,9 @@ public class CategoryCommandService {
 
     @Transactional
     public Long create(Long fridgeId, CreateCategoryCommand command) {
+        ensureNotDuplicated(fridgeId, command.storageType(), command.name());
 
-        boolean exists = repository.existsByFridgeIdAndStorageTypeAndName(
-                fridgeId,
-                command.storageType(),
-                command.name()
-        );
-
-        if (exists) {
-            throw new ApiException(CATEGORY_DUPLICATE);
-        }
-
-        int nextOrderIndex =
-                repository.findMaxOrderIndexByFridgeIdAndStorageType(fridgeId, command.storageType()) + 1;
+        int nextOrderIndex = nextOrderIndex(fridgeId, command.storageType());
 
         FridgeCategory category = FridgeCategory.create(
                 fridgeId,
@@ -45,45 +35,71 @@ public class CategoryCommandService {
                 command.color()
         );
 
-        repository.save(category);
-        return category.getId();
+        return repository.save(category).getId();
     }
 
     @Transactional
     public Long update(Long fridgeId, UpdateCategoryCommand command) {
-        if (!command.hasAnyChange()) {
-            throw new ApiException(CATEGORY_UPDATE_EMPTY);
-        }
+        ensureHasAnyChange(command);
 
-        FridgeCategory category = repository.findById(command.categoryId())
-                .orElseThrow(() -> new ApiException(CATEGORY_NOT_FOUND));
-
-        if (!category.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(CATEGORY_FORBIDDEN);
-        }
+        FridgeCategory category = loadCategory(command.categoryId());
+        ensureOwnedByFridge(fridgeId, category);
 
         StorageType targetStorageType = resolveStorageType(command, category);
         String targetName = resolveName(command, category);
         CategoryColor targetColor = resolveColor(command, category);
 
-        if (command.name() != null && targetName.isBlank()) {
-            throw new ApiException(CATEGORY_NAME_BLANK);
-        }
+        ensureNameNotBlankIfProvided(command, targetName);
 
-        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
+        ensureNotDuplicatedExcludingSelfIfKeyChanged(
                 fridgeId,
+                command,
+                category,
                 targetStorageType,
-                targetName,
-                category.getId()
+                targetName
         );
-
-        if (duplicate) {
-            throw new ApiException(CATEGORY_DUPLICATE);
-        }
 
         category.update(targetStorageType, targetName, targetColor);
         return category.getId();
+    }
 
+    @Transactional
+    public void delete(Long fridgeId, Long categoryId) {
+        FridgeCategory category = loadCategory(categoryId);
+        ensureOwnedByFridge(fridgeId, category);
+
+        repository.delete(category);
+    }
+
+    private void ensureNotDuplicated(Long fridgeId, StorageType storageType, String name) {
+        boolean exists = repository.existsByFridgeIdAndStorageTypeAndName(fridgeId, storageType, name);
+        if (!exists) {
+            return;
+        }
+        throw new ApiException(CATEGORY_DUPLICATE);
+    }
+
+    private int nextOrderIndex(Long fridgeId, StorageType storageType) {
+        return repository.findMaxOrderIndexByFridgeIdAndStorageType(fridgeId, storageType) + 1;
+    }
+
+    private void ensureHasAnyChange(UpdateCategoryCommand command) {
+        if (command.hasAnyChange()) {
+            return;
+        }
+        throw new ApiException(CATEGORY_UPDATE_EMPTY);
+    }
+
+    private FridgeCategory loadCategory(Long categoryId) {
+        return repository.findById(categoryId)
+                .orElseThrow(() -> new ApiException(CATEGORY_NOT_FOUND));
+    }
+
+    private void ensureOwnedByFridge(Long fridgeId, FridgeCategory category) {
+        if (category.getFridgeId().equals(fridgeId)) {
+            return;
+        }
+        throw new ApiException(CATEGORY_FORBIDDEN);
     }
 
     private StorageType resolveStorageType(UpdateCategoryCommand command, FridgeCategory category) {
@@ -107,15 +123,38 @@ public class CategoryCommandService {
         return category.getColor();
     }
 
-    @Transactional
-    public void delete(Long fridgeId, Long categoryId) {
-        FridgeCategory category = repository.findById(categoryId)
-                .orElseThrow(() -> new ApiException(CATEGORY_NOT_FOUND));
+    private void ensureNameNotBlankIfProvided(UpdateCategoryCommand command, String targetName) {
+        if (command.name() == null) {
+            return;
+        }
+        if (!targetName.isBlank()) {
+            return;
+        }
+        throw new ApiException(CATEGORY_NAME_BLANK);
+    }
 
-        if (!category.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(CATEGORY_FORBIDDEN);
+    private void ensureNotDuplicatedExcludingSelfIfKeyChanged(
+            Long fridgeId,
+            UpdateCategoryCommand command,
+            FridgeCategory category,
+            StorageType targetStorageType,
+            String targetName
+    ) {
+        boolean keyChanged = command.storageType() != null || command.name() != null;
+        if (!keyChanged) {
+            return;
         }
 
-        repository.delete(category);
+        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
+                fridgeId,
+                targetStorageType,
+                targetName,
+                category.getId()
+        );
+
+        if (!duplicate) {
+            return;
+        }
+        throw new ApiException(CATEGORY_DUPLICATE);
     }
 }

@@ -51,6 +51,20 @@ public class FridgeCategory {
     @Column(name = "color", nullable = false)
     private CategoryColor color;
 
+    private FridgeCategory(
+            Long fridgeId,
+            String name,
+            int orderIndex,
+            StorageType storageType,
+            CategoryColor color) {
+
+        this.fridgeId = fridgeId;
+        this.name = name;
+        this.orderIndex = orderIndex;
+        this.storageType = storageType;
+        this.color = color;
+    }
+
     public static FridgeCategory create(
             Long fridgeId,
             String name,
@@ -58,13 +72,7 @@ public class FridgeCategory {
             StorageType storageType,
             CategoryColor color
     ) {
-        FridgeCategory category = new FridgeCategory();
-        category.fridgeId = fridgeId;
-        category.name = name;
-        category.orderIndex = orderIndex;
-        category.storageType = storageType;
-        category.color = color;
-        return category;
+        return new FridgeCategory(fridgeId,name,orderIndex,storageType,color);
     }
 
     public void update(StorageType newStorageType, String newName, CategoryColor newColor) {

@@ -3,8 +3,8 @@ package com.potatoes.Naengu.ingredients.fridge.category.command.dto;
 import com.potatoes.Naengu.ingredients.fridge.category.command.command.CreateCategoryCommand;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
-import com.potatoes.Naengu.ingredients.shared.validation.EnumValue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,23 +20,21 @@ import tools.jackson.databind.annotation.JsonNaming;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateCategoryRequest {
 
-    @NotBlank
-    @EnumValue(enumClass = StorageType.class, ignoreCase = true)
-    private String storageType;
+    @NotNull
+    private StorageType storageType;
 
     @NotBlank
     @Size(min = 1, max = 20)
     private String name;
 
-    @NotBlank
-    @EnumValue(enumClass = CategoryColor.class, ignoreCase = true)
-    private String color;
+    @NotNull
+    private CategoryColor color;
 
     public CreateCategoryCommand toCommand() {
         return new CreateCategoryCommand(
-                StorageType.valueOf(storageType.trim().toUpperCase()),
+                storageType,
                 name,
-                CategoryColor.valueOf(color.trim().toUpperCase())
+                color
         );
     }
 }
