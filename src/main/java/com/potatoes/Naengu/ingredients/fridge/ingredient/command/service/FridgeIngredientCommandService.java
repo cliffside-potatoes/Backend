@@ -1,6 +1,6 @@
 package com.potatoes.Naengu.ingredients.fridge.ingredient.command.service;
 
-import static com.potatoes.Naengu.ingredients.fridge.ingredient.command.exception.IngredientErrorCode.*;
+import static com.potatoes.Naengu.ingredients.fridge.ingredient.command.exception.FridgeIngredientErrorCode.*;
 
 import com.potatoes.Naengu.ingredients.dictionary.ingredient.repository.IngredientRepository;
 import com.potatoes.Naengu.ingredients.fridge.category.repository.FridgeCategoryRepository;
@@ -45,22 +45,14 @@ public class FridgeIngredientCommandService {
     private void validateCategoryOwnedByFridge(Long fridgeId, Long categoryId) {
         boolean exists = fridgeCategoryRepository.existsByIdAndFridgeId(categoryId, fridgeId);
         if (!exists) {
-            throw new ApiException(
-                    FRIDGE_CATEGORY_NOT_FOUND.code(),
-                    FRIDGE_CATEGORY_NOT_FOUND.message(),
-                    FRIDGE_CATEGORY_NOT_FOUND.status()
-            );
+            throw new ApiException(FRIDGE_CATEGORY_NOT_FOUND);
         }
     }
 
     private void validateIngredientExists(Long ingredientId) {
         boolean exists = ingredientRepository.existsById(ingredientId);
         if (!exists) {
-            throw new ApiException(
-                    FRIDGE_INGREDIENT_NOT_FOUND.code(),
-                    FRIDGE_INGREDIENT_NOT_FOUND.message(),
-                    FRIDGE_INGREDIENT_NOT_FOUND.status()
-            );
+            throw new ApiException(FRIDGE_INGREDIENT_NOT_FOUND);
         }
     }
 
@@ -73,11 +65,7 @@ public class FridgeIngredientCommandService {
                 );
 
         if (duplicated) {
-            throw new ApiException(
-                    FRIDGE_INGREDIENT_DUPLICATE.code(),
-                    FRIDGE_INGREDIENT_DUPLICATE.message(),
-                    FRIDGE_INGREDIENT_DUPLICATE.status()
-            );
+            throw new ApiException(FRIDGE_INGREDIENT_DUPLICATE);
 
         }
     }
@@ -85,26 +73,14 @@ public class FridgeIngredientCommandService {
     @Transactional
     public Long update(Long fridgeId, UpdateFridgeIngredientCommand command) {
         if (!command.hasAnyChange()) {
-            throw new ApiException(
-                    FRIDGE_INGREDIENT_UPDATE_EMPTY.code(),
-                    FRIDGE_INGREDIENT_UPDATE_EMPTY.message(),
-                    FRIDGE_INGREDIENT_UPDATE_EMPTY.status()
-            );
+            throw new ApiException(FRIDGE_INGREDIENT_UPDATE_EMPTY);
         }
 
         FridgeIngredient fridgeIngredient = fridgeIngredientRepository.findById(command.fridgeIngredientId())
-                .orElseThrow(() -> new ApiException(
-                        FRIDGE_INGREDIENT_NOT_FOUND.code(),
-                        FRIDGE_INGREDIENT_NOT_FOUND.message(),
-                        FRIDGE_INGREDIENT_NOT_FOUND.status()
-                ));
+                .orElseThrow(() -> new ApiException(FRIDGE_INGREDIENT_NOT_FOUND));
 
         if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(
-                    FRIDGE_INGREDIENT_FORBIDDEN.code(),
-                    FRIDGE_INGREDIENT_FORBIDDEN.message(),
-                    FRIDGE_INGREDIENT_FORBIDDEN.status()
-            );
+            throw new ApiException(FRIDGE_INGREDIENT_FORBIDDEN);
         }
 
         Long targetCategoryId = resolveCategoryId(command, fridgeIngredient);
@@ -118,11 +94,7 @@ public class FridgeIngredientCommandService {
         );
 
         if (duplicate) {
-            throw new ApiException(
-                    FRIDGE_INGREDIENT_DUPLICATE.code(),
-                    FRIDGE_INGREDIENT_DUPLICATE.message(),
-                    FRIDGE_INGREDIENT_DUPLICATE.status()
-            );
+            throw new ApiException(FRIDGE_INGREDIENT_DUPLICATE);
         }
 
         fridgeIngredient.update(targetCategoryId, targetIngredientId);
@@ -148,18 +120,10 @@ public class FridgeIngredientCommandService {
     @Transactional
     public void delete(Long fridgeId, Long fridgeIngredientId) {
         FridgeIngredient fridgeIngredient = fridgeIngredientRepository.findById(fridgeIngredientId)
-                .orElseThrow(() -> new ApiException(
-                        FRIDGE_INGREDIENT_NOT_FOUND.code(),
-                        FRIDGE_INGREDIENT_NOT_FOUND.message(),
-                        FRIDGE_INGREDIENT_NOT_FOUND.status()
-                ));
+                .orElseThrow(() -> new ApiException(FRIDGE_INGREDIENT_NOT_FOUND));
 
         if (!fridgeIngredient.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(
-                    FRIDGE_INGREDIENT_FORBIDDEN.code(),
-                    FRIDGE_INGREDIENT_FORBIDDEN.message(),
-                    FRIDGE_INGREDIENT_FORBIDDEN.status()
-            );
+            throw new ApiException(FRIDGE_INGREDIENT_FORBIDDEN);
         }
 
         fridgeIngredientRepository.delete(fridgeIngredient);

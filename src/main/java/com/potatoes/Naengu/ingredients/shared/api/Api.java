@@ -1,7 +1,7 @@
 package com.potatoes.Naengu.ingredients.shared.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.http.HttpStatus;
+import com.potatoes.Naengu.ingredients.shared.exception.ErrorCode;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
@@ -14,14 +14,19 @@ public record Api<T>(
 ) {
 
     public static <T> Api<T> success(T data) {
-        return new Api<>("OK", "OK", data);
+        return new Api<>("OK", "SUCCESS", data);
     }
 
     public static Api<Void> success() {
-        return new Api<>("OK", "OK", null);
+        return new Api<>("OK", "SUCCESS", null);
     }
 
     public static Api<Void> error(String code, String message) {
         return new Api<>(code, message, null);
     }
+
+    public static Api<Void> error(ErrorCode errorCode) {
+        return new Api<>(errorCode.code(), errorCode.message(), null);
+    }
+
 }

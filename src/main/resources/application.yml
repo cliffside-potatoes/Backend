@@ -9,4 +9,6 @@ spring:
 
 logging:
   level:
+    root: INFO
+    com.potatoes.Naengu: INFO
     org.hibernate.SQL: debug

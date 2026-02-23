@@ -9,7 +9,6 @@ import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCatego
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +31,7 @@ public class CategoryCommandService {
         );
 
         if (exists) {
-            throw new ApiException(
-                    CATEGORY_DUPLICATE.code(),
-                    CATEGORY_DUPLICATE.message(),
-                    CATEGORY_DUPLICATE.status()
-            );
+            throw new ApiException(CATEGORY_DUPLICATE);
         }
 
         int nextOrderIndex =
@@ -57,26 +52,14 @@ public class CategoryCommandService {
     @Transactional
     public Long update(Long fridgeId, UpdateCategoryCommand command) {
         if (!command.hasAnyChange()) {
-            throw new ApiException(
-                    CATEGORY_UPDATE_EMPTY.code(),
-                    CATEGORY_UPDATE_EMPTY.message(),
-                    CATEGORY_UPDATE_EMPTY.status()
-            );
+            throw new ApiException(CATEGORY_UPDATE_EMPTY);
         }
 
         FridgeCategory category = repository.findById(command.categoryId())
-                .orElseThrow(() -> new ApiException(
-                        CATEGORY_NOT_FOUND.code(),
-                        CATEGORY_NOT_FOUND.message(),
-                        CATEGORY_NOT_FOUND.status()
-                ));
+                .orElseThrow(() -> new ApiException(CATEGORY_NOT_FOUND));
 
         if (!category.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(
-                    CATEGORY_FORBIDDEN.code(),
-                    CATEGORY_FORBIDDEN.message(),
-                    CATEGORY_FORBIDDEN.status()
-            );
+            throw new ApiException(CATEGORY_FORBIDDEN);
         }
 
         StorageType targetStorageType = resolveStorageType(command, category);
@@ -84,11 +67,7 @@ public class CategoryCommandService {
         CategoryColor targetColor = resolveColor(command, category);
 
         if (command.name() != null && targetName.isBlank()) {
-            throw new ApiException(
-                    "VALIDATION_ERROR",
-                    "name은 공백일 수 없습니다.",
-                    HttpStatus.BAD_REQUEST
-            );
+            throw new ApiException(CATEGORY_NAME_BLANK);
         }
 
         boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
@@ -99,11 +78,7 @@ public class CategoryCommandService {
         );
 
         if (duplicate) {
-            throw new ApiException(
-                    CATEGORY_DUPLICATE.code(),
-                    CATEGORY_DUPLICATE.message(),
-                    CATEGORY_DUPLICATE.status()
-            );
+            throw new ApiException(CATEGORY_DUPLICATE);
         }
 
         category.update(targetStorageType, targetName, targetColor);
@@ -135,18 +110,10 @@ public class CategoryCommandService {
     @Transactional
     public void delete(Long fridgeId, Long categoryId) {
         FridgeCategory category = repository.findById(categoryId)
-                .orElseThrow(() -> new ApiException(
-                        CATEGORY_NOT_FOUND.code(),
-                        CATEGORY_NOT_FOUND.message(),
-                        CATEGORY_NOT_FOUND.status()
-                ));
+                .orElseThrow(() -> new ApiException(CATEGORY_NOT_FOUND));
 
         if (!category.getFridgeId().equals(fridgeId)) {
-            throw new ApiException(
-                    CATEGORY_FORBIDDEN.code(),
-                    CATEGORY_FORBIDDEN.message(),
-                    CATEGORY_FORBIDDEN.status()
-            );
+            throw new ApiException(CATEGORY_FORBIDDEN);
         }
 
         repository.delete(category);

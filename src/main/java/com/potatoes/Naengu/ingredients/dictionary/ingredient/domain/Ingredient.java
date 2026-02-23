@@ -11,10 +11,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "ingredient",
+        uniqueConstraints = @UniqueConstraint(name = "uk_ingredient_name", columnNames = "name"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
-@Table(name = "ingredient", uniqueConstraints = @UniqueConstraint(name = "uk_ingredient_name", columnNames = "name"))
 public class Ingredient {
 
     @Id
@@ -24,7 +25,26 @@ public class Ingredient {
     @Column(nullable = false, length = 50)
     private String name;
 
-    public Ingredient(String name) {
-        this.name = name;
+    private Ingredient(String name) {
+        validate(name);
+        this.name = normalize(name);
+    }
+
+    public static Ingredient of(String name) {
+        return new Ingredient(name);
+    }
+
+    private static void validate(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("ingredient.name must not be blank");
+        }
+
+        if (name.trim().length() > 50) {
+            throw new IllegalArgumentException("ingredient.name must be <= 50 chars");
+        }
+    }
+
+    private static String normalize(String name) {
+        return name.trim();
     }
 }

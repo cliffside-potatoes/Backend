@@ -1,19 +1,15 @@
 package com.potatoes.Naengu.ingredients.shared.exception;
 
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 @Getter
 public class ApiException extends RuntimeException {
 
-    private final String errorCode;
-    private final HttpStatus status;
+    private final ErrorCode errorCode;
 
-    public ApiException(String errorCode, String message,HttpStatus status) {
-        super(message);
+    public ApiException(ErrorCode errorCode) {
+        super(errorCode.message());
         this.errorCode = errorCode;
-        this.status = status;
     }
-
 
 }

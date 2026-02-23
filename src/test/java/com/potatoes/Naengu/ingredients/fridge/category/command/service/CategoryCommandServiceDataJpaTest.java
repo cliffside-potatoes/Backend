@@ -2,6 +2,7 @@ package com.potatoes.Naengu.ingredients.fridge.category.command.service;
 
 import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_DUPLICATE;
 import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_FORBIDDEN;
+import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_NAME_BLANK;
 import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_NOT_FOUND;
 import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_UPDATE_EMPTY;
 import static org.assertj.core.api.Assertions.*;
@@ -13,12 +14,12 @@ import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCatego
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
+import com.potatoes.Naengu.ingredients.shared.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 
 @DataJpaTest
 @Import(CategoryCommandService.class)
@@ -67,9 +68,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_DUPLICATE.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_DUPLICATE.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_DUPLICATE.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_DUPLICATE);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_DUPLICATE.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_DUPLICATE.message());
                 });
     }
 
@@ -156,9 +158,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_UPDATE_EMPTY.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_UPDATE_EMPTY.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_UPDATE_EMPTY.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_UPDATE_EMPTY);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_UPDATE_EMPTY.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_UPDATE_EMPTY.message());
                 });
     }
 
@@ -178,9 +181,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_NOT_FOUND.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_NOT_FOUND.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_NOT_FOUND.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_NOT_FOUND);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_NOT_FOUND.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_NOT_FOUND.message());
                 });
     }
 
@@ -205,9 +209,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_FORBIDDEN.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_FORBIDDEN.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_FORBIDDEN.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_FORBIDDEN);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_FORBIDDEN.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_FORBIDDEN.message());
                 });
     }
 
@@ -235,9 +240,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_DUPLICATE.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_DUPLICATE.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_DUPLICATE.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_DUPLICATE);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_DUPLICATE.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_DUPLICATE.message());
                 });
     }
 
@@ -261,9 +267,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo("VALIDATION_ERROR");
-                    assertThat(e.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-                    assertThat(e.getMessage()).isEqualTo("name은 공백일 수 없습니다.");
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_NAME_BLANK);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_NAME_BLANK.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_NAME_BLANK.message());
                 });
     }
 
@@ -276,9 +283,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_NOT_FOUND.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_NOT_FOUND.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_NOT_FOUND.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_NOT_FOUND);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_NOT_FOUND.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_NOT_FOUND.message());
                 });
     }
 
@@ -296,9 +304,10 @@ class CategoryCommandServiceDataJpaTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ApiException e = (ApiException) ex;
-                    assertThat(e.getErrorCode()).isEqualTo(CATEGORY_FORBIDDEN.code());
-                    assertThat(e.getStatus()).isEqualTo(CATEGORY_FORBIDDEN.status());
-                    assertThat(e.getMessage()).isEqualTo(CATEGORY_FORBIDDEN.message());
+                    ErrorCode errorCode = e.getErrorCode();
+                    assertThat(errorCode).isEqualTo(CATEGORY_FORBIDDEN);
+                    assertThat(errorCode.status()).isEqualTo(CATEGORY_FORBIDDEN.status());
+                    assertThat(errorCode.message()).isEqualTo(CATEGORY_FORBIDDEN.message());
                 });
     }
 }
