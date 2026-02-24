@@ -33,3 +33,17 @@ custom:
 logging:
   level:
     org.hibernate.SQL: debug
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_CRED_ACCESS_KEY}
+      secret-key: ${AWS_CRED_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    s3:
+      bucket: ${S3_BUCKET}
+      endpoint: ${S3_ENDPOINT}
+    stack:
+      auto: false
