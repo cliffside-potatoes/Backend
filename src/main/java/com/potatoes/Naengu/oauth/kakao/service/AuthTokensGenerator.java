@@ -23,7 +23,7 @@ public class AuthTokensGenerator {
 
         //String subject = email.toString();
         String accessToken = jwtTokenProvider.accessTokenGenerate(uid, accessTokenExpiredAt);
-        String refreshToken = jwtTokenProvider.refreshTokenGenerate(refreshTokenExpiredAt);
+        String refreshToken = jwtTokenProvider.refreshTokenGenerate(uid, refreshTokenExpiredAt);
 
         return AuthTokens.of(accessToken, refreshToken, BEARER_TYPE, ACCESS_TOKEN_EXPIRE_TIME / 1000L);
     }

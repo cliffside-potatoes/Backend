@@ -5,6 +5,7 @@ import com.potatoes.Naengu.oauth.kakao.dto.AuthTokens;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
 import com.potatoes.Naengu.oauth.kakao.dto.LoginResponse;
+import com.potatoes.Naengu.oauth.kakao.dto.LoginSuccessResponse;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -145,6 +146,23 @@ public class KakaoOAuthService {
                 + "?response_type=code"
                 + "&client_id=" + kakaoClientId
                 + "&redirect_uri=" + kakaoRedirectUri;
+    }
+
+    // refresh token으로 새 access token 발급
+    public LoginSuccessResponse generateAccessToken(Long providerId) {
+        UserEntity user = userRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        AuthTokens token = authTokensGenerator.generate(providerId.toString());
+
+        return new LoginSuccessResponse(
+                user.getProviderId(),
+                user.getNickName(),
+                "Bearer",
+                token.getAccessToken(),
+                token.getExpiresIn(),
+                false
+        );
     }
 
 }

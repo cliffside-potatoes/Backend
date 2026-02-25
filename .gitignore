@@ -8,6 +8,7 @@ build/
 # local config (do not commit)
 src/main/resources/application-local.yml
 src/main/resources/application-local.yaml
+.claude
 
 ### STS ###
 .apt_generated
