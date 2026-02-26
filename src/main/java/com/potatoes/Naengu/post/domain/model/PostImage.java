@@ -2,8 +2,10 @@ package com.potatoes.Naengu.post.domain.model;
 
 import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "post_image")
 public class PostImage {
     @Id

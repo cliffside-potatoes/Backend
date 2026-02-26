@@ -2,12 +2,15 @@ package com.potatoes.Naengu.post.domain.model;
 
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import jakarta.persistence.*;
+import lombok.Getter;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "post")
 public class Post {
     @Id
@@ -30,6 +33,7 @@ public class Post {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     //post_image 쪽에 저장될 post의 fk post_image.post_id
     @JoinColumn(name= "post_id", nullable = false)
+    @BatchSize(size = 50)
     private List<PostImage> images = new ArrayList<>();
 
     protected Post() {}
