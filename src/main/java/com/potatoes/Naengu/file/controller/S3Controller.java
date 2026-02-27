@@ -34,6 +34,7 @@ public class S3Controller {
         String path = switch(type){
             case "post" -> "public/post";
             case "profile" -> "public/profile";
+            case "recipe" -> "public/recipe";
             //아래에 더 추가하기
             default -> throw new IllegalArgumentException("지원하지 않는 type");
 

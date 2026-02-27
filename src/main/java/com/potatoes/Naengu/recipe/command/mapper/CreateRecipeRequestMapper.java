@@ -1,9 +1,11 @@
 package com.potatoes.Naengu.recipe.command.mapper;
 
 import com.potatoes.Naengu.recipe.command.command.CreateRecipeCommand;
+import com.potatoes.Naengu.recipe.command.command.CreateRecipeImageCommand;
 import com.potatoes.Naengu.recipe.command.command.CreateRecipeWithLinkCommand;
 import com.potatoes.Naengu.recipe.command.command.CreateRecipeWithTextCommand;
 import com.potatoes.Naengu.recipe.command.dto.CreateRecipeRequest;
+import com.potatoes.Naengu.recipe.command.dto.RecipeImageRequest;
 
 public final class CreateRecipeRequestMapper {
 
@@ -16,7 +18,7 @@ public final class CreateRecipeRequestMapper {
                 request.servings(),
                 request.cookingTime(),
                 request.description(),
-                request.thumbnailImage(),
+                toRecipeImageCommand(request),
                 request.type(),
                 request.ingredients(),
                 request.tags(),
@@ -31,6 +33,15 @@ public final class CreateRecipeRequestMapper {
 
     private static CreateRecipeWithLinkCommand toLinkCommand(CreateRecipeRequest request) {
         return CreateRecipeWithLinkRequestMapper.toCommand(request.recipeWithLink());
+    }
+
+    private static CreateRecipeImageCommand toRecipeImageCommand(CreateRecipeRequest request) {
+        return new CreateRecipeImageCommand(
+                request.recipeImage().s3Key(),
+                request.recipeImage().contentType(),
+                request.recipeImage().size(),
+                request.recipeImage().accessType()
+        );
     }
 
 }

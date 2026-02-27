@@ -10,6 +10,7 @@ import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
 import com.potatoes.Naengu.recipe.command.command.CreateRecipeCommand;
 import com.potatoes.Naengu.recipe.command.command.CreateRecipeStepCommand;
 import com.potatoes.Naengu.recipe.domain.model.Recipe;
+import com.potatoes.Naengu.recipe.domain.model.RecipeImage;
 import com.potatoes.Naengu.recipe.domain.model.RecipeIngredient;
 import com.potatoes.Naengu.recipe.domain.model.RecipeStep;
 import com.potatoes.Naengu.recipe.domain.model.RecipeTag;
@@ -72,7 +73,11 @@ public class RecipeCommandService {
                     command.difficulty(),
                     command.cookingTime(),
                     command.description(),
-                    command.thumbnailImage()
+                    new RecipeImage(
+                            command.recipeImage().s3Key(),
+                            command.recipeImage().contentType(),
+                            command.recipeImage().size(),
+                            command.recipeImage().accessType())
             );
         }
 
@@ -82,7 +87,11 @@ public class RecipeCommandService {
                 command.difficulty(),
                 command.cookingTime(),
                 command.description(),
-                command.thumbnailImage(),
+                new RecipeImage(
+                        command.recipeImage().s3Key(),
+                        command.recipeImage().contentType(),
+                        command.recipeImage().size(),
+                        command.recipeImage().accessType()),
                 command.recipeWithLink().url(),
                 command.recipeWithLink().urlSource()
         );

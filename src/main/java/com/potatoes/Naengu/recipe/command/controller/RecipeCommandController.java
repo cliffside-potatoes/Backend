@@ -1,5 +1,7 @@
 package com.potatoes.Naengu.recipe.command.controller;
 
+import com.potatoes.Naengu.auth.annotation.AuthFridge;
+import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.ingredients.shared.api.Api;
 import com.potatoes.Naengu.recipe.command.command.CreateRecipeCommand;
 import com.potatoes.Naengu.recipe.command.dto.CreateRecipeRequest;
@@ -24,6 +26,7 @@ public class RecipeCommandController {
 
     @PostMapping("/recipes")
     public ResponseEntity<Api<CreateRecipeResponse>> create(
+            @AuthFridge Fridge fridge,
             @Valid @RequestBody CreateRecipeRequest request
     ) {
         CreateRecipeCommand command = CreateRecipeRequestMapper.toCommand(request);

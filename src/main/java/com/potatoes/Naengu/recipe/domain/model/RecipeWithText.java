@@ -19,9 +19,9 @@ public class RecipeWithText extends Recipe {
             Difficulty difficulty,
             int cookingTime,
             String description,
-            String thumbnailImage
+            RecipeImage recipeImage
     ) {
-        initBase(title, servings, difficulty, cookingTime, description, thumbnailImage);
+        initBase(title, servings, difficulty, cookingTime, description, recipeImage);
     }
 
     public static RecipeWithText of(
@@ -30,9 +30,9 @@ public class RecipeWithText extends Recipe {
             Difficulty difficulty,
             int cookingTime,
             String description,
-            String thumbnailImage
+            RecipeImage recipeImage
     ) {
-        return new RecipeWithText(title, servings, difficulty, cookingTime, description, thumbnailImage);
+        return new RecipeWithText(title, servings, difficulty, cookingTime, description, recipeImage);
     }
 
 }

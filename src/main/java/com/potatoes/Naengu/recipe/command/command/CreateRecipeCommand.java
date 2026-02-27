@@ -11,7 +11,7 @@ public record CreateRecipeCommand(
         int servings,
         int cookingTime,
         String description,
-        String thumbnailImage,
+        CreateRecipeImageCommand recipeImage,
         RecipeType type,
         List<String> ingredients,
         List<String> tags,

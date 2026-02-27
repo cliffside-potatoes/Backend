@@ -8,10 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.annotation.JsonNaming;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record CreateRecipeRequest(
         @NotBlank
         @Size(max = 50)
@@ -20,18 +17,19 @@ public record CreateRecipeRequest(
         @NotNull
         Difficulty difficulty,
 
+        @NotNull
         @Min(1)
-        int servings,
+        Integer servings,
 
+        @NotNull
         @Min(1)
-        int cookingTime,
+        Integer cookingTime,
 
         @NotBlank
         String description,
 
-        @NotBlank
-        @Size(max = 300)
-        String thumbnailImage,
+        @Valid
+        RecipeImageRequest recipeImage,
 
         @NotNull
         RecipeType type,

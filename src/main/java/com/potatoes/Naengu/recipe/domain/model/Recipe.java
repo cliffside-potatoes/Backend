@@ -1,16 +1,20 @@
 package com.potatoes.Naengu.recipe.domain.model;
 
 import com.potatoes.Naengu.recipe.domain.vo.Difficulty;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,8 +46,10 @@ public abstract class Recipe {
     @Column(nullable = false)
     private String description;
 
-    @Column(name = "thumbnail_image", nullable = false, length = 300)
-    private String thumbnailImage;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "recipe_image_id", nullable = false)
+    private RecipeImage recipeImage;
+
 
     protected final void initBase(
             String title,
@@ -51,15 +57,15 @@ public abstract class Recipe {
             Difficulty difficulty,
             int cookingTime,
             String description,
-            String thumbnailImage
+            RecipeImage recipeImage
     ) {
-        validateBase(title, servings, difficulty,cookingTime, description,thumbnailImage);
+        validateBase(title, servings, difficulty,cookingTime, description,recipeImage);
         this.title = title.trim();
         this.servings = servings;
         this.difficulty = difficulty;
         this.cookingTime = cookingTime;
         this.description = description.trim();
-        this.thumbnailImage = thumbnailImage.trim();
+        this.recipeImage = recipeImage;
     }
 
     private void validateBase(
@@ -68,14 +74,13 @@ public abstract class Recipe {
             Difficulty difficulty,
             int cookingTime,
             String description,
-            String thumbnailImage
+            RecipeImage recipeImage
     ) {
         validateTitle(title);
         validateServings(servings);
         validateDifficulty(difficulty);
         validateCookingTime(cookingTime);
         validateDescription(description);
-        validateThumbnailImage(thumbnailImage);
     }
 
     private void validateTitle(String title) {
@@ -108,15 +113,6 @@ public abstract class Recipe {
     private void validateDescription(String description) {
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("recipe.description must not be blank");
-        }
-    }
-
-    private void validateThumbnailImage(String thumbnailImage) {
-        if (thumbnailImage == null || thumbnailImage.isBlank()) {
-            throw new IllegalArgumentException("recipe.thumbnailImage must not be blank");
-        }
-        if (thumbnailImage.trim().length() > 300) {
-            throw new IllegalArgumentException("recipe.thumbnailImage must be <= 300 chars");
         }
     }
 

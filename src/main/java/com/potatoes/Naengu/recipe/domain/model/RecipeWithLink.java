@@ -26,11 +26,11 @@ public class RecipeWithLink extends Recipe {
             Difficulty difficulty,
             int cookingTime,
             String description,
-            String thumbnailImage,
+            RecipeImage recipeImage,
             String url,
             String urlSource
     ) {
-        initBase(title, servings, difficulty, cookingTime, description, thumbnailImage);
+        initBase(title, servings, difficulty, cookingTime, description, recipeImage);
         initLink(url, urlSource);
     }
 
@@ -40,11 +40,11 @@ public class RecipeWithLink extends Recipe {
             Difficulty difficulty,
             int cookingTime,
             String description,
-            String thumbnailImage,
+            RecipeImage recipeImage,
             String url,
             String urlSource
     ) {
-        return new RecipeWithLink(title, servings, difficulty, cookingTime, description, thumbnailImage, url, urlSource);
+        return new RecipeWithLink(title, servings, difficulty, cookingTime, description, recipeImage, url, urlSource);
     }
 
     private void initLink(String url, String urlSource) {
