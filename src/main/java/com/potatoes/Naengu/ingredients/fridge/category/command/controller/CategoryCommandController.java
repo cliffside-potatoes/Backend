@@ -5,8 +5,9 @@ import com.potatoes.Naengu.ingredients.fridge.category.command.dto.CreateCategor
 import com.potatoes.Naengu.ingredients.fridge.category.command.dto.UpdateCategoryRequest;
 import com.potatoes.Naengu.ingredients.fridge.category.command.dto.UpdateCategoryResponse;
 import com.potatoes.Naengu.ingredients.fridge.category.command.service.CategoryCommandService;
+import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.ingredients.shared.api.Api;
-import com.potatoes.Naengu.ingredients.shared.auth.AuthFridgeId;
+import com.potatoes.Naengu.auth.annotation.AuthFridge;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +29,10 @@ public class CategoryCommandController {
 
     @PostMapping("/ingredients/categories")
     public ResponseEntity<Api<CreateCategoryResponse>> create(
-            @AuthFridgeId Long fridgeId,
+            @AuthFridge Fridge fridge,
             @Valid @RequestBody CreateCategoryRequest request)
     {
-        Long id = service.create(fridgeId, request.toCommand());
+        Long id = service.create(fridge, request.toCommand());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -40,11 +41,11 @@ public class CategoryCommandController {
 
     @PatchMapping("/ingredients/categories/{fridgeCategoryId}")
     public ResponseEntity<Api<UpdateCategoryResponse>> update(
-            @AuthFridgeId Long fridgeId,
+            @AuthFridge Fridge fridge,
             @PathVariable Long fridgeCategoryId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        Long updatedId = service.update(fridgeId, request.toCommand(fridgeCategoryId));
+        Long updatedId = service.update(fridge, request.toCommand(fridgeCategoryId));
         return ResponseEntity.ok(
                 Api.success(new UpdateCategoryResponse(updatedId))
         );
@@ -52,10 +53,10 @@ public class CategoryCommandController {
 
     @DeleteMapping("/ingredients/categories/{fridgeCategoryId}")
     public ResponseEntity<Api<Void>> delete(
-            @AuthFridgeId Long fridgeId,
+            @AuthFridge Fridge fridge,
             @PathVariable Long fridgeCategoryId
     ) {
-        service.delete(fridgeId, fridgeCategoryId);
+        service.delete(fridge, fridgeCategoryId);
         return ResponseEntity.ok(Api.success());
     }
 

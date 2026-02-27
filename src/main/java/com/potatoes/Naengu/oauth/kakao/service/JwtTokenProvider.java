@@ -1,5 +1,6 @@
 package com.potatoes.Naengu.oauth.kakao.service;
 
+import com.potatoes.Naengu.auth.token.TokenReader;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -12,7 +13,7 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
-public class JwtTokenProvider {
+public class JwtTokenProvider implements TokenReader {
     //로깅용 나중에 사용할 예정
     //private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Key key;
@@ -23,6 +24,7 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    @Override
     public String resolveBearerToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header == null) return null;
@@ -57,7 +59,7 @@ public class JwtTokenProvider {
         }
     }
 
-    public Long getMemberId(String token) {
+    public Long extractProviderId(String token) {
         try {
             Claims claims = Jwts.parser()
                     .verifyWith((SecretKey) key)              // 서명 검증 키
@@ -77,6 +79,11 @@ public class JwtTokenProvider {
             //throw new GlobalException(GlobalErrorCode.AUTH_INVALID_TOKEN);
         }
         return null;
+    }
+
+    @Override
+    public Long extractSubjectAsLong(String token) {
+        return extractProviderId(token);
     }
 
 }

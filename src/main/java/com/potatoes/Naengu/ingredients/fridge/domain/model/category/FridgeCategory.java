@@ -1,5 +1,6 @@
 package com.potatoes.Naengu.ingredients.fridge.domain.model.category;
 
+import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import jakarta.persistence.Column;
@@ -9,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -34,8 +37,9 @@ public class FridgeCategory {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "fridge_id", nullable = false)
-    private Long fridgeId;
+    @ManyToOne
+    @JoinColumn(name = "fridge_id", nullable = false)
+    private Fridge fridge;
 
     @Column(name = "name", nullable = false, length = 20)
     private String name;
@@ -52,13 +56,13 @@ public class FridgeCategory {
     private CategoryColor color;
 
     private FridgeCategory(
-            Long fridgeId,
+            Fridge fridge,
             String name,
             int orderIndex,
             StorageType storageType,
             CategoryColor color) {
 
-        this.fridgeId = fridgeId;
+        this.fridge= fridge;
         this.name = name;
         this.orderIndex = orderIndex;
         this.storageType = storageType;
@@ -66,13 +70,13 @@ public class FridgeCategory {
     }
 
     public static FridgeCategory create(
-            Long fridgeId,
+            Fridge fridge,
             String name,
             int orderIndex,
             StorageType storageType,
             CategoryColor color
     ) {
-        return new FridgeCategory(fridgeId,name,orderIndex,storageType,color);
+        return new FridgeCategory(fridge,name,orderIndex,storageType,color);
     }
 
     public void update(StorageType newStorageType, String newName, CategoryColor newColor) {

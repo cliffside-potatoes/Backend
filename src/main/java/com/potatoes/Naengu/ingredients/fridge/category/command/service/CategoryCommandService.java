@@ -5,6 +5,7 @@ import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.
 import com.potatoes.Naengu.ingredients.fridge.category.command.command.CreateCategoryCommand;
 import com.potatoes.Naengu.ingredients.fridge.category.command.command.UpdateCategoryCommand;
 import com.potatoes.Naengu.ingredients.fridge.category.repository.FridgeCategoryRepository;
+import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
@@ -15,35 +16,35 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CategoryCommandService {
 
-    private final FridgeCategoryRepository repository;
+    private final FridgeCategoryRepository fridgeCategoryRepository;
 
-    public CategoryCommandService(FridgeCategoryRepository repository) {
-        this.repository = repository;
+    public CategoryCommandService(FridgeCategoryRepository fridgeCategoryRepository) {
+        this.fridgeCategoryRepository = fridgeCategoryRepository;
     }
 
     @Transactional
-    public Long create(Long fridgeId, CreateCategoryCommand command) {
-        ensureNotDuplicated(fridgeId, command.storageType(), command.name());
+    public Long create(Fridge fridge, CreateCategoryCommand command) {
+        ensureNotDuplicated(fridge, command.storageType(), command.name());
 
-        int nextOrderIndex = nextOrderIndex(fridgeId, command.storageType());
+        int nextOrderIndex = nextOrderIndex(fridge, command.storageType());
 
         FridgeCategory category = FridgeCategory.create(
-                fridgeId,
+                fridge,
                 command.name(),
                 nextOrderIndex,
                 command.storageType(),
                 command.color()
         );
 
-        return repository.save(category).getId();
+        return fridgeCategoryRepository.save(category).getId();
     }
 
     @Transactional
-    public Long update(Long fridgeId, UpdateCategoryCommand command) {
+    public Long update(Fridge fridge, UpdateCategoryCommand command) {
         ensureHasAnyChange(command);
 
         FridgeCategory category = loadCategory(command.categoryId());
-        ensureOwnedByFridge(fridgeId, category);
+        ensureOwnedByFridge(fridge, category);
 
         StorageType targetStorageType = resolveStorageType(command, category);
         String targetName = resolveName(command, category);
@@ -52,7 +53,7 @@ public class CategoryCommandService {
         ensureNameNotBlankIfProvided(command, targetName);
 
         ensureNotDuplicatedExcludingSelfIfKeyChanged(
-                fridgeId,
+                fridge,
                 command,
                 category,
                 targetStorageType,
@@ -64,23 +65,23 @@ public class CategoryCommandService {
     }
 
     @Transactional
-    public void delete(Long fridgeId, Long categoryId) {
+    public void delete(Fridge fridge, Long categoryId) {
         FridgeCategory category = loadCategory(categoryId);
-        ensureOwnedByFridge(fridgeId, category);
+        ensureOwnedByFridge(fridge, category);
 
-        repository.delete(category);
+        fridgeCategoryRepository.delete(category);
     }
 
-    private void ensureNotDuplicated(Long fridgeId, StorageType storageType, String name) {
-        boolean exists = repository.existsByFridgeIdAndStorageTypeAndName(fridgeId, storageType, name);
+    private void ensureNotDuplicated(Fridge fridge, StorageType storageType, String name) {
+        boolean exists = fridgeCategoryRepository.existsByFridgeAndStorageTypeAndName(fridge, storageType, name);
         if (!exists) {
             return;
         }
         throw new ApiException(CATEGORY_DUPLICATE);
     }
 
-    private int nextOrderIndex(Long fridgeId, StorageType storageType) {
-        return repository.findMaxOrderIndexByFridgeIdAndStorageType(fridgeId, storageType) + 1;
+    private int nextOrderIndex(Fridge fridge, StorageType storageType) {
+        return fridgeCategoryRepository.findMaxOrderIndexByFridgeAndStorageType(fridge, storageType) + 1;
     }
 
     private void ensureHasAnyChange(UpdateCategoryCommand command) {
@@ -91,12 +92,12 @@ public class CategoryCommandService {
     }
 
     private FridgeCategory loadCategory(Long categoryId) {
-        return repository.findById(categoryId)
+        return fridgeCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ApiException(CATEGORY_NOT_FOUND));
     }
 
-    private void ensureOwnedByFridge(Long fridgeId, FridgeCategory category) {
-        if (category.getFridgeId().equals(fridgeId)) {
+    private void ensureOwnedByFridge(Fridge fridge, FridgeCategory category) {
+        if (category.getFridge().getId().equals(fridge.getId())) {
             return;
         }
         throw new ApiException(CATEGORY_FORBIDDEN);
@@ -134,7 +135,7 @@ public class CategoryCommandService {
     }
 
     private void ensureNotDuplicatedExcludingSelfIfKeyChanged(
-            Long fridgeId,
+            Fridge fridge,
             UpdateCategoryCommand command,
             FridgeCategory category,
             StorageType targetStorageType,
@@ -145,8 +146,8 @@ public class CategoryCommandService {
             return;
         }
 
-        boolean duplicate = repository.existsByFridgeIdAndStorageTypeAndNameAndIdNot(
-                fridgeId,
+        boolean duplicate = fridgeCategoryRepository.existsByFridgeAndStorageTypeAndNameAndIdNot(
+                fridge,
                 targetStorageType,
                 targetName,
                 category.getId()

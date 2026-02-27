@@ -1,5 +1,8 @@
 package com.potatoes.Naengu.profile.service;
 
+import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
+import com.potatoes.Naengu.ingredients.fridge.domain.model.ingredient.FridgeIngredient;
+import com.potatoes.Naengu.ingredients.fridge.repository.FridgeRepository;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
 import com.potatoes.Naengu.profile.domain.model.Profile;
@@ -28,7 +31,8 @@ public class ProfileService {
             UserEntity user = userRepository.findByProviderId(userId)
                     .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
 
-            Profile created = new Profile(user, req.nickname(), req.bio());
+            Fridge fridge = Fridge.crate();
+            Profile created = new Profile(user, req.nickname(), req.bio(), fridge);
             created.upsertProfileImageIfPresent(req.profileImage());
             Profile saved = profileRepository.save(created);
 

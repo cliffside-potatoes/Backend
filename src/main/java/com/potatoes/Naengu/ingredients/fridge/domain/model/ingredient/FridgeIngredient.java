@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -21,27 +20,12 @@ import org.hibernate.annotations.SoftDelete;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @SoftDelete
-@Table(
-        name = "fridge_ingredient",
-        indexes = {
-                @Index(
-                        name = "idx_fridge_ingredient_fridge",
-                        columnList = "fridge_id, is_deleted"
-                ),
-                @Index(
-                        name = "idx_fridge_ingredient_unique",
-                        columnList = "fridge_id, fridge_category_id, ingredient_id, is_deleted"
-                )
-        }
-)
+@Table(name = "fridge_ingredient")
 public class FridgeIngredient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "fridge_id", nullable = false)
-    private Long fridgeId;
 
     @ManyToOne
     @JoinColumn(name = "fridge_category_id", nullable = false)
@@ -58,11 +42,9 @@ public class FridgeIngredient {
     private LocalDateTime updatedAt;
 
     private FridgeIngredient(
-            Long fridgeId,
             FridgeCategory fridgeCategory,
             Ingredient ingredient
     ) {
-        this.fridgeId = fridgeId;
         this.fridgeCategory = fridgeCategory;
         this.ingredient = ingredient;
 
@@ -70,8 +52,8 @@ public class FridgeIngredient {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static FridgeIngredient create(Long fridgeId, FridgeCategory fridgeCategory, Ingredient ingredient) {
-        return new FridgeIngredient(fridgeId, fridgeCategory, ingredient);
+    public static FridgeIngredient create(FridgeCategory fridgeCategory, Ingredient ingredient) {
+        return new FridgeIngredient(fridgeCategory, ingredient);
     }
 
     public void update(FridgeCategory newFridgeCategory, Ingredient newIngredient) {

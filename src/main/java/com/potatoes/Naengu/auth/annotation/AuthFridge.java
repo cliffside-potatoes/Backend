@@ -1,4 +1,4 @@
-package com.potatoes.Naengu.ingredients.shared.auth;
+package com.potatoes.Naengu.auth.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface AuthFridgeId {
+public @interface AuthFridge {
 
 }

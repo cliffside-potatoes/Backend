@@ -1,5 +1,6 @@
 package com.potatoes.Naengu.ingredients.fridge.category.repository;
 
+import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
 import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
 import java.util.Optional;
@@ -8,14 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, Long> {
 
-    boolean existsByFridgeIdAndStorageTypeAndName(
-            Long fridgeId,
+    boolean existsByFridgeAndStorageTypeAndName(
+            Fridge fridge,
             StorageType storageType,
             String name
     );
 
-    boolean existsByFridgeIdAndStorageTypeAndNameAndIdNot(
-            Long fridgeId,
+    boolean existsByFridgeAndStorageTypeAndNameAndIdNot(
+            Fridge fridge,
             StorageType storageType,
             String name,
             Long id
@@ -24,11 +25,11 @@ public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, 
     @Query("""
              select coalesce(max(c.orderIndex), 0)
              from FridgeCategory c
-             where c.fridgeId = :fridgeId
+             where c.fridge = :fridge
                and c.storageType = :storageType
          
             """)
-    int findMaxOrderIndexByFridgeIdAndStorageType(Long fridgeId, StorageType storageType);
+    int findMaxOrderIndexByFridgeAndStorageType(Fridge fridge, StorageType storageType);
 
-    Optional<FridgeCategory> findByIdAndFridgeId(Long id, Long fridgeId);
+    Optional<FridgeCategory> findByIdAndFridge(Long id, Fridge fridge);
 }
