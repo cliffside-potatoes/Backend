@@ -56,10 +56,11 @@ public class KakaoController {
         Map<String, Object> userInfo = kakaoOAuthService.getUserInfo(tokenResponse.accessToken());
 
         LoginResponse kakaoUserResponse = kakaoOAuthService.kakaoUserLogin(userInfo);
-
+        
+        //System.out.println(" 사용자 신원 확인 테스트" + kakaoUserResponse.getToken().getRefreshToken());
         // RefreshToken 쿠키로 저장 (SameSite=None은 Java Cookie API 미지원으로 헤더 직접 설정)
         String cookieValue = String.format(
-                "refreshToken=%s; Max-Age=%d; Path=/; HttpOnly; SameSite=None; Secure",
+                "refreshToken=%s; Max-Age=%d; Path=/; HttpOnly; SameSite=None; Secure", //잠깐 지우기
                 kakaoUserResponse.getToken().getRefreshToken(),
                 60 * 60 * 24 * 14
         );
