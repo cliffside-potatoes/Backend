@@ -6,7 +6,7 @@ import com.potatoes.Naengu.post.dto.PostCreateRequest;
 import com.potatoes.Naengu.post.dto.PostCreateResponse;
 import com.potatoes.Naengu.post.dto.PostImageRequest;
 import com.potatoes.Naengu.profile.domain.model.Profile;
-import com.potatoes.Naengu.profile.repository.PostRepository;
+import com.potatoes.Naengu.post.repository.PostRepository;
 import com.potatoes.Naengu.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -47,3 +47,6 @@ cloud:
       endpoint: ${S3_ENDPOINT}
     stack:
       auto: false
+
+app:
+  frontend-url: ${REDIRECT_FRONT_URL}
