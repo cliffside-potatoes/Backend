@@ -66,7 +66,7 @@ public class KakaoController {
         );
         response.setHeader("Set-Cookie", cookieValue);
 
-        // 302 리다이렉트로 프론트엔드로 이동 -> 고치기
+        // 302 리다이렉트로 프론트엔드로 이동
 
         String redirectUrl = frontendUrl + "/main";
         if(kakaoUserResponse.isNewMember()){
