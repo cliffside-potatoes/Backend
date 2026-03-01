@@ -24,12 +24,14 @@ public class AuthFridgeArgumentResolver implements HandlerMethodArgumentResolver
         this.fridgeRepository = fridgeRepository;
     }
 
+    //어떤 파라미터에 발동할지
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(AuthFridge.class)
                 && Fridge.class.isAssignableFrom(parameter.getParameterType());
     }
 
+    //실제로 Fridge 객체를 만들어서 주입
     @Override
     public @Nullable Object resolveArgument(
             MethodParameter parameter,

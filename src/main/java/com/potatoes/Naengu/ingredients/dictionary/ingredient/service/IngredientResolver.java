@@ -28,7 +28,7 @@ public class IngredientResolver {
     /**
      * 1) alias 조회
      * 2) 없으면 ingredient 조회
-     * 3) 없으면 ingredient 생성
+     * 3) 없으면 ingredient 생성 -> 이러면 매핑 되지 않는 재료들만 생기는거 아닌가?
      */
     @Transactional
     public Ingredient resolverOrCreateByInput(String input) {
