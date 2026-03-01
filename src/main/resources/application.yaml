@@ -23,6 +23,10 @@ kakao:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
     redirect-uri: ${KAKAO_REDIRECT_URI}
+  dev-oauth:
+    client-id: ${KAKAO_DEV_CLIENT_ID}
+    client-secret: ${KAKAO_DEV_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_DEV_REDIRECT_URI}
 
 
 custom:
@@ -49,3 +53,6 @@ cloud:
       endpoint: ${S3_ENDPOINT}
     stack:
       auto: false
+
+app:
+  frontend-url: ${REDIRECT_FRONT_URL}

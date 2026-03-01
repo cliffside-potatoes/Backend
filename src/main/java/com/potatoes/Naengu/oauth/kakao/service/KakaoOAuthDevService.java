@@ -1,11 +1,7 @@
 package com.potatoes.Naengu.oauth.kakao.service;
 
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
-import com.potatoes.Naengu.oauth.kakao.dto.AuthTokens;
-import com.potatoes.Naengu.oauth.kakao.dto.KakaoTokenResponse;
-import com.potatoes.Naengu.oauth.kakao.dto.KakaoUserInfoResponse;
-import com.potatoes.Naengu.oauth.kakao.dto.LoginResponse;
-import com.potatoes.Naengu.oauth.kakao.dto.LoginSuccessResponse;
+import com.potatoes.Naengu.oauth.kakao.dto.*;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,14 +20,14 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class KakaoOAuthService {
-    @Value("${kakao.oauth.client-id}")
+public class KakaoOAuthDevService {
+    @Value("${kakao.dev-oauth.client-id}")
     private String kakaoClientId;
 
-    @Value("${kakao.oauth.client-secret}")
+    @Value("${kakao.dev-oauth.client-secret}")
     private String kakaoClientSecret;
 
-    @Value("${kakao.oauth.redirect-uri}")
+    @Value("${kakao.dev-oauth.redirect-uri}")
     private String kakaoRedirectUri;
 
     private final UserRepository userRepository;

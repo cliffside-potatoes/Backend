@@ -39,8 +39,9 @@ public class JwtTokenProvider implements TokenReader {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
-    public String refreshTokenGenerate(Date expiredAt) {
+    public String refreshTokenGenerate(String subject, Date expiredAt) {
         return Jwts.builder()
+                .setSubject(subject)
                 .setExpiration(expiredAt)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
