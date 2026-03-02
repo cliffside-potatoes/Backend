@@ -1,6 +1,6 @@
 package com.potatoes.Naengu.recipe.domain.model;
 
-import com.potatoes.Naengu.ingredients.dictionary.ingredient.domain.Ingredient;
+import com.potatoes.Naengu.ingredient.domain.model.Ingredient;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

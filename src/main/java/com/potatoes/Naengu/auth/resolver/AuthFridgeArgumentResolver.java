@@ -2,8 +2,8 @@ package com.potatoes.Naengu.auth.resolver;
 
 import com.potatoes.Naengu.auth.annotation.AuthFridge;
 import com.potatoes.Naengu.auth.service.AuthService;
-import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
-import com.potatoes.Naengu.ingredients.fridge.repository.FridgeRepository;
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
+import com.potatoes.Naengu.fridge.repository.FridgeRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;

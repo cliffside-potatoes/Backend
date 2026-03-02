@@ -1,8 +1,8 @@
 package com.potatoes.Naengu.profile.service;
 
-import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
-import com.potatoes.Naengu.ingredients.fridge.domain.model.ingredient.FridgeIngredient;
-import com.potatoes.Naengu.ingredients.fridge.repository.FridgeRepository;
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
+import com.potatoes.Naengu.fridge.domain.model.FridgeIngredient;
+import com.potatoes.Naengu.fridge.repository.FridgeRepository;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
 import com.potatoes.Naengu.profile.domain.model.Profile;

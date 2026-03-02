@@ -1,6 +1,6 @@
 package com.potatoes.Naengu.profile.domain.model;
 
-import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import jakarta.persistence.*;
