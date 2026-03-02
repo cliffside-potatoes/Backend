@@ -88,7 +88,8 @@ public class KakaoController {
 
         // refresh token 검증 및 사용자 ID 추출
         jwtTokenProvider.validateToken(refreshToken);
-        Long memberId = jwtTokenProvider.getMemberId(refreshToken);
+        Long memberId = jwtTokenProvider.extractProviderId(refreshToken);
+
 
         if (memberId == null) {
             return ResponseEntity.status(401).build();
