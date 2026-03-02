@@ -1,5 +1,6 @@
 package com.potatoes.Naengu.profile.domain.model;
 
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import jakarta.persistence.*;
@@ -26,12 +27,17 @@ public class Profile {
     @JoinColumn(name="profile_image_id")
     private ProfileImage profileImage;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "fridge_id",nullable = false,unique = true)
+    private Fridge fridge;
+
     protected Profile() {}
 
-    public Profile(UserEntity user, String nickname, String bio) {
+    public Profile(UserEntity user, String nickname, String bio, Fridge fridge) {
         this.userEntity = user;
         this.nickname = nickname;
         this.bio = bio;
+        this.fridge = fridge;
     }
 
     public void updateNickname(String nickname) {

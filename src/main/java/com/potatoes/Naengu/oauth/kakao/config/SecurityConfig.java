@@ -27,7 +27,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(frontendUrl));
+        config.setAllowedOrigins(List.of(frontendUrl, "http://localhost:8080"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // 쿠키 전송 허용
@@ -52,7 +52,8 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/oauth/**","/dev/**", "/login", "/healthcheck", "/presigned", "/main", "/new-info").permitAll()
+                        .requestMatchers("/oauth/**", "/dev/**", "/login", "/healthcheck", "/presigned", "/main", "/new-info").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 );
 

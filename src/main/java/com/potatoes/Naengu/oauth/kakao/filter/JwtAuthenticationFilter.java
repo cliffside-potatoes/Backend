@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwtTokenProvider.validateToken(token);
 
             // 2) 토큰에서 memberId 추출 (subject에 memberId 넣는 방식)
-            Long memberId = jwtTokenProvider.getMemberId(token);
+            Long memberId = jwtTokenProvider.extractProviderId(token);
 
             // 3) DB에서 UserDetails 로드
             UserDetails userDetails = memberDetailsService.loadUserByUsername(memberId.toString());
