@@ -2,11 +2,8 @@ package com.potatoes.Naengu.global.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.potatoes.Naengu.global.exception.ErrorCode;
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record Api<T>(
         String resultCode,
         String resultMessage,
