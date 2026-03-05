@@ -35,6 +35,7 @@ public class S3Controller {
             case "post" -> "public/post";
             case "profile" -> "public/profile";
             case "recipe" -> "public/recipe";
+            case "recipeReview" -> "public/recipeReview";
             //아래에 더 추가하기
             default -> throw new IllegalArgumentException("지원하지 않는 type");
 

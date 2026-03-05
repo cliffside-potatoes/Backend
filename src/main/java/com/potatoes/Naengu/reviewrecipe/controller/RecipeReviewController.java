@@ -45,7 +45,7 @@ public class RecipeReviewController {
                                             {
                                                 "images" : [
                                                     {
-                                                "s3Key": "public/recipe/fa14dc74-bbb6-4b62-8c66-ce4d1b0e321b김치찌개.jpg",
+                                                "s3Key": "public/recipeReview/7cb23ed2-daa0-433b-96e8-7255edb91da7리뷰사진.jpg",
                                                 "contentType": "image/jpeg",
                                                 "size": 123456,
                                                 "accessType": "public"
