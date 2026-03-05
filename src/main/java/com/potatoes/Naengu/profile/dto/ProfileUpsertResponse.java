@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.profile.dto;
 
 public record ProfileUpsertResponse (
-        Long profileId
+        Long profileId,
+        boolean isNew
 ){
 }
