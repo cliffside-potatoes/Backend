@@ -6,11 +6,8 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.potatoes.Naengu.file.dto.PresignedUrlResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
@@ -18,11 +15,9 @@ import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
-@Component
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class FileUploadService {
-    private static final Logger log = LoggerFactory.getLogger(FileUploadService.class);
     @Autowired
     private AmazonS3 amazonS3;
 
