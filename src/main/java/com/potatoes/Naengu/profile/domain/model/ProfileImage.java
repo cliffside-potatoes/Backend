@@ -2,11 +2,11 @@ package com.potatoes.Naengu.profile.domain.model;
 
 import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Entity
 @Table(name = "profile_image")
-
+@Getter
 public class ProfileImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
