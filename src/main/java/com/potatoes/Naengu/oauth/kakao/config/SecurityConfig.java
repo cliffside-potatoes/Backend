@@ -52,7 +52,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/oauth/**", "/dev/**", "/login", "/healthcheck", "/presigned", "/main", "/new-info").permitAll()
+                        .requestMatchers("/oauth/**", "/dev/**", "/login", "/healthcheck", "/main", "/new-info").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 );
