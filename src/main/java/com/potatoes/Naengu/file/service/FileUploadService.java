@@ -25,10 +25,15 @@ public class FileUploadService {
     private String useOnlyOneFileName;
 
     @Value("${cloud.aws.s3.bucket}")
-    private String bucket; // S3 버킷 이름
+    private String bucket;
 
     @Value("${cloud.aws.region.static}")
-    private String location; // S3 리전 (Region)
+    private String location;
+
+    @Value("${cloud.aws.s3.endpoint}")
+    private String endpoint;
+
+    private static final String DEFAULT_PROFILE_IMAGE_KEY = "public/default/default.png";
 
     /**
      * Presigned URL을 생성하는 메서드
@@ -97,5 +102,12 @@ public class FileUploadService {
         return UUID.randomUUID().toString() + filename;
     }
 
+    public String getPublicUrl(String s3Key) {
+        return endpoint + "/" + bucket + "/" + s3Key;
+    }
+
+    public String getDefaultProfileImageUrl() {
+        return getPublicUrl(DEFAULT_PROFILE_IMAGE_KEY);
+    }
 
 }
