@@ -1,8 +1,7 @@
 package com.potatoes.Naengu.profile.service;
 
+import com.potatoes.Naengu.file.service.FileUploadService;
 import com.potatoes.Naengu.fridge.domain.model.Fridge;
-import com.potatoes.Naengu.fridge.domain.model.FridgeIngredient;
-import com.potatoes.Naengu.fridge.repository.FridgeRepository;
 import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
@@ -16,13 +15,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
+    private final FileUploadService fileUploadService;
 
     @Transactional
     public ProfileUpsertResponse upsert(Long userId, ProfileUpsertRequest req){
@@ -55,6 +53,11 @@ public class ProfileService {
     public ProfileGetResponse getProfile(Long userId) {
         Profile profile = profileRepository.findByUserEntityProviderId(userId)
                 .orElseThrow(() -> new ApiException(ProfileErrorCode.PROFILE_NOT_FOUND));
-        return ProfileGetResponse.from(profile);
+
+        String imageUrl = profile.getProfileImage() != null
+                ? fileUploadService.getPublicUrl(profile.getProfileImage().getS3Key())
+                : fileUploadService.getDefaultProfileImageUrl();
+
+        return ProfileGetResponse.from(profile, imageUrl);
     }
 }
