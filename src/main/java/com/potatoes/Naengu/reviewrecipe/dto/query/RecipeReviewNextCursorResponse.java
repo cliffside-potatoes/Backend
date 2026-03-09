@@ -1,4 +1,4 @@
-package com.potatoes.Naengu.reviewrecipe.dto;
+package com.potatoes.Naengu.reviewrecipe.dto.query;
 
 import java.time.LocalDateTime;
 

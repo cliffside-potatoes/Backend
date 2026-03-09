@@ -12,25 +12,23 @@ public interface RecipeReviewRepository extends JpaRepository<RecipeReview, Long
 
     boolean existsByProfileIdAndRecipeId(Long profileId, Long recipeId);
 
-    boolean existsByRecipeId(Long recipeId);
-
     long countByRecipeId(Long recipeId);
 
-    List<RecipeReview> findByRecipeIdOrderByCreatedAtDescIdDesc(Long recipeId, Pageable pageable);
+    List<RecipeReview> findByRecipeIdOrderByUpdatedAtDescIdDesc(Long recipeId, Pageable pageable);
 
     @Query("""
         select rr
         from RecipeReview rr
         where rr.recipe.id = :recipeId
           and (
-                rr.createdAt < :cursorUpdatedAt
-                or (rr.createdAt = :cursorUpdatedAt and rr.id < :cursorId)
+                rr.updatedAt < :cursorUpdatedAt
+                or (rr.updatedAt = :cursorUpdatedAt and rr.id < :cursorId)
           )
-        order by rr.createdAt desc, rr.id desc
+        order by rr.updatedAt desc, rr.id desc
         """)
     List<RecipeReview> findLatestNextPage(
             @Param("recipeId") Long recipeId,
-            @Param("cursorUpdatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorUpdatedAt") LocalDateTime cursorUpdatedAt,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );

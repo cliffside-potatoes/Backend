@@ -1,12 +1,21 @@
-package com.potatoes.Naengu.reviewrecipe.dto;
+package com.potatoes.Naengu.reviewrecipe.dto.query;
 
 import com.potatoes.Naengu.reviewrecipe.domain.vo.ReviewSortType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 
+@Schema(
+        example = """
+            {
+                "sort": "LATEST"
+            }
+            """
+
+)
 public record GetReviewFeedRequest(
         @Min(1)
         @Max(100)

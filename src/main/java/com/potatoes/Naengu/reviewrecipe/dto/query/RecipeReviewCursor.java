@@ -1,4 +1,6 @@
-package com.potatoes.Naengu.reviewrecipe.dto;
+package com.potatoes.Naengu.reviewrecipe.dto.query;
+
+import static com.potatoes.Naengu.reviewrecipe.exception.RecipeReviewErrorCode.INVALID_CURSOR;
 
 import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.reviewrecipe.domain.model.RecipeReview;
