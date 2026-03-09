@@ -3,7 +3,13 @@ package com.potatoes.Naengu.file.controller;
 import com.potatoes.Naengu.file.dto.ImageRequestDTO;
 import com.potatoes.Naengu.file.dto.PresignedUrlResponseDTO;
 import com.potatoes.Naengu.file.service.FileUploadService;
+import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,43 +18,37 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "File", description = "파일 업로드 API")
 @RestController
 @RequiredArgsConstructor
 public class S3Controller {
     private final FileUploadService fileUploadService;
 
-    /**
-     * S3에게 pre-signed URL (권한) 요청하는 엔드포인트
-     * 프론트에서 이 URL을 받아서 AWS S3에 직접 업로드함.
-     *
-     * @param imageDTO 파일 이름 정보를 담은 DTO
-     * @return AWS S3에 업로드할 수 있는 Presigned URL
-     */
+    @Operation(summary = "Presigned URL 발급", description = "S3에 직접 업로드하기 위한 Presigned URL을 발급합니다. type: post, profile, recipe")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Presigned URL 발급 성공"),
+            @ApiResponse(responseCode = "400", description = "지원하지 않는 type"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @PostMapping("/presigned/{type}")
-    public ResponseEntity<PresignedUrlResponseDTO> createPresignedUrl(
+    public ResponseEntity<Api<PresignedUrlResponseDTO>> createPresignedUrl(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "업로드 대상 타입 (post, profile, recipe)", example = "post")
             @PathVariable String type,
             @RequestBody ImageRequestDTO imageDTO) {
 
-        // S3 내 저장될 폴더 경로
-        String path = switch(type){
+        String path = switch (type) {
             case "post" -> "public/post";
             case "profile" -> "public/profile";
             case "recipe" -> "public/recipe";
             case "recipeReview" -> "public/recipeReview";
             //아래에 더 추가하기
-            default -> throw new IllegalArgumentException("지원하지 않는 type");
 
+            default -> throw new IllegalArgumentException("지원하지 않는 type: " + type);
         };
 
-        String s3Key = path + "/" + imageDTO.getImageName();  // 업로드될 S3 Key 생성
+        PresignedUrlResponseDTO result = fileUploadService.getPreSignedUrl(path, imageDTO.getImageName());
 
-        PresignedUrlResponseDTO presignedUrl = fileUploadService.getPreSignedUrl(path,imageDTO.getImageName());
-
-        return ResponseEntity.ok(presignedUrl);  // Presigned URL과 S3 Key 반환
+        return ResponseEntity.ok(Api.success(result));
     }
-
-
-
-
 }
