@@ -2,8 +2,13 @@ package com.potatoes.Naengu.reviewrecipe.controller;
 
 import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
+import com.potatoes.Naengu.reviewrecipe.domain.vo.ReviewSortType;
 import com.potatoes.Naengu.reviewrecipe.dto.CreateRecipeReviewRequest;
 import com.potatoes.Naengu.reviewrecipe.dto.CreateRecipeReviewResponse;
+import com.potatoes.Naengu.reviewrecipe.dto.GetReviewFeedRequest;
+import com.potatoes.Naengu.reviewrecipe.dto.RecipeReviewFeedResponse;
+import com.potatoes.Naengu.reviewrecipe.dto.RecipeReviewCursor;
+import com.potatoes.Naengu.reviewrecipe.service.RecipeReviewQueryService;
 import com.potatoes.Naengu.reviewrecipe.service.RecipeReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +20,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,11 +32,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeReviewController {
 
     private final RecipeReviewService recipeReviewService;
+    private final RecipeReviewQueryService recipeReviewQueryService;
 
-
-    public RecipeReviewController(RecipeReviewService recipeReviewService) {
+    public RecipeReviewController(RecipeReviewService recipeReviewService,
+                                  RecipeReviewQueryService recipeReviewQueryService) {
         this.recipeReviewService = recipeReviewService;
+        this.recipeReviewQueryService = recipeReviewQueryService;
     }
+
 
     @Operation(
             summary = "레시피 리뷰글 생성",
@@ -74,5 +84,30 @@ public class RecipeReviewController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(Api.success(new CreateRecipeReviewResponse(id)));
+    }
+
+    @GetMapping("/reviewRecipes/{recipeId}")
+    public ResponseEntity<Api<RecipeReviewFeedResponse>> getFeed(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long recipeId,
+            @ModelAttribute GetReviewFeedRequest request
+    ) {
+
+        Long userId = Long.parseLong(userDetails.getUsername());
+
+        ReviewSortType sort = request.normalizedSort();
+        RecipeReviewCursor cursor = request.toCursor();
+        cursor.validate(sort);
+
+        RecipeReviewFeedResponse recipeReviewFeedResponse =
+                recipeReviewQueryService.getFeed(
+                        userId,
+                        request.normalizedSize(),
+                        recipeId,
+                        sort,
+                        cursor
+                );
+
+        return ResponseEntity.ok(Api.success(recipeReviewFeedResponse));
     }
 }

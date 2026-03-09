@@ -20,11 +20,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("""
             SELECT p 
             FROM Post p 
-            WHERE p.createdAt < :cursorCreatedAt OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId) 
+            WHERE p.createdAt < :cursorUpdatedAt OR (p.createdAt = :cursorUpdatedAt AND p.id < :cursorId) 
             ORDER BY p.createdAt DESC, p.id DESC
     """)
     List<Post> findLatestAfterCursor(
-            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorUpdatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );

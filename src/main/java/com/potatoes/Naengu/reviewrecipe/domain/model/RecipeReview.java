@@ -45,7 +45,7 @@ public class RecipeReview {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(name = "like_count", nullable = false)
@@ -62,6 +62,7 @@ public class RecipeReview {
         this.recipe = recipe;
         this.content = content;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
         this.likeCount = 0;
         this.hideLikeCount = false;
         this.pinned = false;

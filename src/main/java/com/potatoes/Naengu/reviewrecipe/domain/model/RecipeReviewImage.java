@@ -1,6 +1,5 @@
 package com.potatoes.Naengu.reviewrecipe.domain.model;
 
-import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import com.potatoes.Naengu.reviewrecipe.dto.RecipeReviewImageRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,11 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "recipe_review_image")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class RecipeReviewImage {
 
     @Id
