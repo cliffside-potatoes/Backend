@@ -16,6 +16,7 @@ import com.potatoes.Naengu.post.domain.model.Post;
 import com.potatoes.Naengu.post.domain.model.PostImage;
 import com.potatoes.Naengu.post.dto.FeedQueryRequest;
 import com.potatoes.Naengu.post.dto.FeedResponse;
+import com.potatoes.Naengu.post.dto.MyFeedResponse;
 import com.potatoes.Naengu.post.repository.PostRepository;
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import com.potatoes.Naengu.profile.repository.ProfileRepository;
@@ -286,6 +287,193 @@ class FeedQueryServiceDataJpaTest {
     void getFeed_invalid_cursor_date_format_throws() {
         assertThatThrownBy(() ->
                 feedQueryService.getFeed(1L, new FeedQueryRequest(10, "2026/01/01 00:00:00", 100L, "LATEST")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    ErrorCode code = ((ApiException) ex).getErrorCode();
+                    assertThat(code).isEqualTo(INVALID_CURSOR);
+                    assertThat(code.status()).isEqualTo(INVALID_CURSOR.status());
+                    assertThat(code.message()).isEqualTo(INVALID_CURSOR.message());
+                });
+    }
+
+    // ── getMyFeed 성공 케이스 ─────────────────────────────────────
+
+    @Test
+    @DisplayName("마이피드 첫 페이지 요청 시 내 게시글만 반환되고 타인 게시글은 제외된다")
+    void getMyFeed_first_page_returns_only_my_posts() {
+        UserEntity user1 = savedUser(10L);
+        Profile profile1 = savedProfile(user1, "나");
+        savedPost(profile1, "내 첫 번째 게시글");
+        savedPost(profile1, "내 두 번째 게시글");
+
+        UserEntity user2 = savedUser(20L);
+        Profile profile2 = savedProfile(user2, "타인");
+        savedPost(profile2, "타인 게시글");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, null, "LATEST"));
+
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.items()).allMatch(item -> !item.content().equals("타인 게시글"));
+    }
+
+    @Test
+    @DisplayName("마이피드 조회 시 게시글이 없으면 빈 목록과 hasNext=false를 반환한다")
+    void getMyFeed_empty_when_no_posts() {
+        savedProfile(savedUser(10L), "나");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, null, "LATEST"));
+
+        assertThat(response.items()).isEmpty();
+        assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("마이피드 조회 결과가 size보다 많으면 hasNext가 true이고 nextCursor가 존재한다")
+    void getMyFeed_has_next_true_when_more_exists() {
+        Profile profile = savedProfile(savedUser(10L), "나");
+        savedPost(profile, "첫 번째");
+        savedPost(profile, "두 번째");
+        savedPost(profile, "세 번째");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(2, null, null, "LATEST"));
+
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.hasNext()).isTrue();
+        assertThat(response.nextCursor()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("마이피드 마지막 페이지이면 hasNext가 false이고 nextCursor가 null이다")
+    void getMyFeed_has_next_false_on_last_page() {
+        Profile profile = savedProfile(savedUser(10L), "나");
+        savedPost(profile, "첫 번째");
+        savedPost(profile, "두 번째");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(3, null, null, "LATEST"));
+
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("마이피드 nextCursor의 cursorId는 items의 마지막 요소 id와 같다")
+    void getMyFeed_next_cursor_equals_last_item() {
+        Profile profile = savedProfile(savedUser(10L), "나");
+        savedPost(profile, "첫 번째");
+        savedPost(profile, "두 번째");
+        savedPost(profile, "세 번째");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(2, null, null, "LATEST"));
+
+        Long lastItemId = response.items().get(response.items().size() - 1).id();
+        assertThat(response.nextCursor().cursorId()).isEqualTo(lastItemId);
+    }
+
+    @Test
+    @DisplayName("마이피드 hideLikeCount가 false이면 likeCount가 0으로 반환된다")
+    void getMyFeed_show_like_count_returns_zero() {
+        Profile profile = savedProfile(savedUser(10L), "나");
+        savedPost(profile, "게시글");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, null, "LATEST"));
+
+        assertThat(response.items().get(0).hideLikeCount()).isFalse();
+        assertThat(response.items().get(0).likeCount()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("마이피드 게시글 이미지의 s3Key가 URL로 변환되어 반환된다")
+    void getMyFeed_post_images_converted_to_urls() {
+        Profile profile = savedProfile(savedUser(10L), "나");
+        Post post = new Post(profile, "이미지 게시글");
+        post.addImage(new PostImage("public/post/my-image.jpg", "image/jpeg", 1000L, "public"));
+        postRepository.save(post);
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, null, "LATEST"));
+
+        assertThat(response.items().get(0).images()).hasSize(1);
+        assertThat(response.items().get(0).images().get(0)).isEqualTo("https://test.s3.com/image.png");
+        verify(fileUploadService).getPublicUrl("public/post/my-image.jpg");
+    }
+
+    @Test
+    @DisplayName("마이피드 글 생성 시 updatedAt과 createdAt이 동일하다")
+    void getMyFeed_updated_at_equals_created_at_on_creation() {
+        Profile profile = savedProfile(savedUser(10L), "나");
+        savedPost(profile, "게시글");
+
+        MyFeedResponse response = feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, null, "LATEST"));
+
+        assertThat(response.items().get(0).updatedAt()).isEqualTo(response.items().get(0).createdAt());
+    }
+
+    // ── getMyFeed 에러 케이스 ─────────────────────────────────────
+
+    @Test
+    @DisplayName("마이피드 조회 시 프로필이 없으면 PROFILE_NOT_FOUND 예외가 발생한다")
+    void getMyFeed_profile_not_found_throws() {
+        assertThatThrownBy(() ->
+                feedQueryService.getMyFeed(9999L, new FeedQueryRequest(10, null, null, "LATEST")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    ErrorCode code = ((ApiException) ex).getErrorCode();
+                    assertThat(code).isEqualTo(PROFILE_NOT_FOUND);
+                    assertThat(code.status()).isEqualTo(PROFILE_NOT_FOUND.status());
+                    assertThat(code.message()).isEqualTo(PROFILE_NOT_FOUND.message());
+                });
+    }
+
+    @Test
+    @DisplayName("마이피드 cursorCreatedAt만 전달하고 cursorId를 생략하면 INVALID_CURSOR 예외가 발생한다")
+    void getMyFeed_only_cursor_created_at_throws() {
+        assertThatThrownBy(() ->
+                feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, "2026-01-01T00:00:00", null, "LATEST")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    ErrorCode code = ((ApiException) ex).getErrorCode();
+                    assertThat(code).isEqualTo(INVALID_CURSOR);
+                    assertThat(code.status()).isEqualTo(INVALID_CURSOR.status());
+                    assertThat(code.message()).isEqualTo(INVALID_CURSOR.message());
+                });
+    }
+
+    @Test
+    @DisplayName("마이피드 cursorId만 전달하고 cursorCreatedAt을 생략하면 INVALID_CURSOR 예외가 발생한다")
+    void getMyFeed_only_cursor_id_throws() {
+        assertThatThrownBy(() ->
+                feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, 100L, "LATEST")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    ErrorCode code = ((ApiException) ex).getErrorCode();
+                    assertThat(code).isEqualTo(INVALID_CURSOR);
+                    assertThat(code.status()).isEqualTo(INVALID_CURSOR.status());
+                    assertThat(code.message()).isEqualTo(INVALID_CURSOR.message());
+                });
+    }
+
+    @Test
+    @DisplayName("마이피드 지원하지 않는 정렬 방식을 전달하면 INVALID_SORT_TYPE 예외가 발생한다")
+    void getMyFeed_invalid_sort_type_throws() {
+        assertThatThrownBy(() ->
+                feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, null, null, "POPULAR")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    ErrorCode code = ((ApiException) ex).getErrorCode();
+                    assertThat(code).isEqualTo(INVALID_SORT_TYPE);
+                    assertThat(code.status()).isEqualTo(INVALID_SORT_TYPE.status());
+                    assertThat(code.message()).isEqualTo(INVALID_SORT_TYPE.message());
+                });
+    }
+
+    @Test
+    @DisplayName("마이피드 cursorCreatedAt의 날짜 형식이 올바르지 않으면 INVALID_CURSOR 예외가 발생한다")
+    void getMyFeed_invalid_cursor_date_format_throws() {
+        savedProfile(savedUser(10L), "나");
+
+        assertThatThrownBy(() ->
+                feedQueryService.getMyFeed(10L, new FeedQueryRequest(10, "2026/01/01 00:00:00", 100L, "LATEST")))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     ErrorCode code = ((ApiException) ex).getErrorCode();

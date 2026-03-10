@@ -4,6 +4,7 @@ import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
 import com.potatoes.Naengu.post.dto.FeedQueryRequest;
 import com.potatoes.Naengu.post.dto.FeedResponse;
+import com.potatoes.Naengu.post.dto.MyFeedResponse;
 import com.potatoes.Naengu.post.query.FeedQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,6 +41,27 @@ public class FeedController {
         Long providerId = Long.parseLong(userDetails.getUsername());
         FeedQueryRequest request = new FeedQueryRequest(size, cursorCreatedAt, cursorId, sort);
         FeedResponse response = feedQueryService.getFeed(providerId, request);
+        return ResponseEntity.ok(Api.success(response));
+    }
+
+    @Operation(summary = "마이 피드 조회", description = "내가 작성한 게시글을 커서 기반 무한 스크롤로 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "마이 피드 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "cursorCreatedAt과 cursorId 중 하나만 전달되거나 정렬 방식이 올바르지 않습니다."),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "프로필을 찾을 수 없습니다.")
+    })
+    @GetMapping("/me/feed")
+    public ResponseEntity<Api<MyFeedResponse>> getMyFeed(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String cursorCreatedAt,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "LATEST") String sort
+    ) {
+        Long providerId = Long.parseLong(userDetails.getUsername());
+        FeedQueryRequest request = new FeedQueryRequest(size, cursorCreatedAt, cursorId, sort);
+        MyFeedResponse response = feedQueryService.getMyFeed(providerId, request);
         return ResponseEntity.ok(Api.success(response));
     }
 }

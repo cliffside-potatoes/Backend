@@ -8,6 +8,8 @@ import com.potatoes.Naengu.post.dto.CursorResponse;
 import com.potatoes.Naengu.post.dto.FeedItemResponse;
 import com.potatoes.Naengu.post.dto.FeedQueryRequest;
 import com.potatoes.Naengu.post.dto.FeedResponse;
+import com.potatoes.Naengu.post.dto.MyFeedItemResponse;
+import com.potatoes.Naengu.post.dto.MyFeedResponse;
 import com.potatoes.Naengu.post.dto.WriterResponse;
 import com.potatoes.Naengu.post.exception.PostErrorCode;
 import com.potatoes.Naengu.post.repository.PostRepository;
@@ -99,6 +101,65 @@ public class FeedQueryService {
                 post.isHideLikeCount(),
                 false,
                 isMine,
+                post.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                post.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public MyFeedResponse getMyFeed(Long providerId, FeedQueryRequest request) {
+        validateCursor(request);
+        SortType.from(request.sort());
+
+        Long profileId = profileRepository.findByUserEntityProviderId(providerId)
+                .map(Profile::getId)
+                .orElseThrow(() -> new ApiException(PostErrorCode.PROFILE_NOT_FOUND));
+
+        List<Post> posts = fetchMyPosts(profileId, request);
+
+        boolean hasNext = posts.size() > request.size();
+        if (hasNext) {
+            posts = posts.subList(0, request.size());
+        }
+
+        List<MyFeedItemResponse> items = posts.stream()
+                .map(this::toMyFeedItemResponse)
+                .toList();
+
+        CursorResponse nextCursor = null;
+        if (hasNext && !posts.isEmpty()) {
+            Post last = posts.get(posts.size() - 1);
+            nextCursor = new CursorResponse(
+                    last.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    last.getId()
+            );
+        }
+
+        return new MyFeedResponse(items, hasNext, nextCursor);
+    }
+
+    private List<Post> fetchMyPosts(Long profileId, FeedQueryRequest request) {
+        PageRequest pageable = PageRequest.of(0, request.size() + 1);
+        if (request.cursorCreatedAt() == null) {
+            return postRepository.findMyLatestAll(profileId, pageable);
+        }
+        LocalDateTime cursorTime = parseCursorTime(request.cursorCreatedAt());
+        return postRepository.findMyLatestAfterCursor(profileId, cursorTime, request.cursorId(), pageable);
+    }
+
+    private MyFeedItemResponse toMyFeedItemResponse(Post post) {
+        List<String> imageUrls = post.getImages().stream()
+                .map(img -> fileUploadService.getPublicUrl(img.getS3Key()))
+                .toList();
+
+        Integer likeCount = post.isHideLikeCount() ? null : 0;
+
+        return new MyFeedItemResponse(
+                post.getId(),
+                imageUrls,
+                post.getContent(),
+                likeCount,
+                post.isHideLikeCount(),
                 post.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 post.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         );
