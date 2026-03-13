@@ -1,26 +1,26 @@
-package com.potatoes.Naengu.recipe.exception;
+package com.potatoes.Naengu.reviewrecipe.exception;
 
 import com.potatoes.Naengu.global.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
-public enum RecipeErrorCode implements ErrorCode {
-    RECIPE_TYPE_MISMATCH(
-            "RECIPE_TYPE_MISMATCH",
-            "레시피 타입이 올바르지 않습니다.",
-            HttpStatus.BAD_REQUEST
-    ),
-
-    RECIPE_NOT_FOUND(
-            "RECIPE_NOT_FOUND",
-            "존재하지 않는 레시피 입니다.",
+public enum RecipeReviewErrorCode implements ErrorCode {
+    PROFILE_NOT_FOUND(
+            "PROFILE_NOT_FOUND",
+            "프로필을 찾을 수 없습니다.",
             HttpStatus.NOT_FOUND
+    ),
+    RECIPE_REVIEW_DUPLICATE(
+            "RECIPE_REVIEW__DUPLICATE",
+            "이미 해당 레시피에 대한 리뷰가 존재합니다.",
+            HttpStatus.CONFLICT
     );
+
 
     private final String code;
     private final String message;
     private final HttpStatus status;
 
-    RecipeErrorCode(String code, String message, HttpStatus status) {
+    RecipeReviewErrorCode(String code, String message, HttpStatus status) {
         this.code = code;
         this.message = message;
         this.status = status;
