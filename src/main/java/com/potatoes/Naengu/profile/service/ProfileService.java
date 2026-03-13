@@ -1,25 +1,26 @@
 package com.potatoes.Naengu.profile.service;
 
+import com.potatoes.Naengu.file.service.FileUploadService;
 import com.potatoes.Naengu.fridge.domain.model.Fridge;
-import com.potatoes.Naengu.fridge.domain.model.FridgeIngredient;
-import com.potatoes.Naengu.fridge.repository.FridgeRepository;
+import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
 import com.potatoes.Naengu.profile.domain.model.Profile;
+import com.potatoes.Naengu.profile.dto.ProfileGetResponse;
 import com.potatoes.Naengu.profile.dto.ProfileUpsertRequest;
 import com.potatoes.Naengu.profile.dto.ProfileUpsertResponse;
+import com.potatoes.Naengu.profile.exception.ProfileErrorCode;
 import com.potatoes.Naengu.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
+    private final FileUploadService fileUploadService;
 
     @Transactional
     public ProfileUpsertResponse upsert(Long userId, ProfileUpsertRequest req){
@@ -36,7 +37,7 @@ public class ProfileService {
             created.upsertProfileImageIfPresent(req.profileImage());
             Profile saved = profileRepository.save(created);
 
-            return new ProfileUpsertResponse(saved.getId());
+            return new ProfileUpsertResponse(saved.getId(), true);
 
         }
 
@@ -45,6 +46,18 @@ public class ProfileService {
         profile.updateBioIfPresent(req.bio());
         profile.upsertProfileImageIfPresent(req.profileImage());
 
-        return new ProfileUpsertResponse(profile.getId());
+        return new ProfileUpsertResponse(profile.getId(), false);
+    }
+
+    @Transactional(readOnly = true)
+    public ProfileGetResponse getProfile(Long userId) {
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(ProfileErrorCode.PROFILE_NOT_FOUND));
+
+        String imageUrl = profile.getProfileImage() != null
+                ? fileUploadService.getPublicUrl(profile.getProfileImage().getS3Key())
+                : fileUploadService.getDefaultProfileImageUrl();
+
+        return ProfileGetResponse.from(profile, imageUrl);
     }
 }

@@ -2,9 +2,10 @@ package com.potatoes.Naengu.ingredients.fridge.domain.model.category;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
-import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
-import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
+import com.potatoes.Naengu.fridge.domain.model.FridgeCategory;
+import com.potatoes.Naengu.fridge.domain.vo.CategoryColor;
+import com.potatoes.Naengu.fridge.domain.vo.StorageType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

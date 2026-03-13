@@ -31,6 +31,8 @@ public class PostImage {
         this.accessType = accessType;
     }
 
+    public String getS3Key() { return s3Key; }
+
     public void update(ProfileImageRequest req){
         this.s3Key = req.s3Key();
         this.contentType = req.contentType();

@@ -3,7 +3,13 @@ package com.potatoes.Naengu.file.controller;
 import com.potatoes.Naengu.file.dto.ImageRequestDTO;
 import com.potatoes.Naengu.file.dto.PresignedUrlResponseDTO;
 import com.potatoes.Naengu.file.service.FileUploadService;
+import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "File", description = "파일 업로드 API")
 @RestController
 @RequiredArgsConstructor
 public class S3Controller {
@@ -27,6 +34,7 @@ public class S3Controller {
     @PostMapping("/presigned/{type}")
     public ResponseEntity<PresignedUrlResponseDTO> createPresignedUrl(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "업로드 대상 타입 (post, profile, recipe)", example = "post")
             @PathVariable String type,
             @RequestBody ImageRequestDTO imageDTO) {
 

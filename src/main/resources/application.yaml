@@ -56,3 +56,4 @@ cloud:
 
 app:
   frontend-url: ${REDIRECT_FRONT_URL}
+  server-url: ${APP_SERVER_URL}
