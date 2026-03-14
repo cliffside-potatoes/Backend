@@ -45,8 +45,8 @@ public class S3Controller {
             case "recipe" -> "public/recipe";
             case "recipeReview" -> "public/recipeReview";
             //아래에 더 추가하기
-            default -> throw new IllegalArgumentException("지원하지 않는 type");
 
+            default -> throw new IllegalArgumentException("지원하지 않는 type: " + type);
         };
 
         String s3Key = path + "/" + imageDTO.getImageName();  // 업로드될 S3 Key 생성

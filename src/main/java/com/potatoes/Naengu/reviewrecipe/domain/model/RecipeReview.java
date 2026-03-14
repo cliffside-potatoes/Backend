@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -20,6 +21,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
+        indexes = {
+                @Index(name = "idx_recipe_review_recipe_updated_id",
+                        columnList = "recipe_id,updated_at,id")
+        },
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_recipe_review_profile_recipe",
                 columnNames = {"profile_id", "recipe_id"}
@@ -45,7 +50,7 @@ public class RecipeReview {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(name = "like_count", nullable = false)
@@ -62,6 +67,7 @@ public class RecipeReview {
         this.recipe = recipe;
         this.content = content;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
         this.likeCount = 0;
         this.hideLikeCount = false;
         this.pinned = false;

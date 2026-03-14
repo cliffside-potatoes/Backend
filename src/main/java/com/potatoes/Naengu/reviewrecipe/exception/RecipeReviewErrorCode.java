@@ -13,6 +13,11 @@ public enum RecipeReviewErrorCode implements ErrorCode {
             "RECIPE_REVIEW__DUPLICATE",
             "이미 해당 레시피에 대한 리뷰가 존재합니다.",
             HttpStatus.CONFLICT
+    ),
+    INVALID_CURSOR(
+            "INVALID_CURSOR",
+            "잘못된 cursor 입니다.",
+            HttpStatus.BAD_REQUEST
     );
 
 
