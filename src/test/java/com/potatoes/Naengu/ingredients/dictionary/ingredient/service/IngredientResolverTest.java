@@ -1,16 +1,17 @@
 package com.potatoes.Naengu.ingredients.dictionary.ingredient.service;
 
 
-import static com.potatoes.Naengu.ingredients.shared.exception.CommonErrorCode.INVALID_INPUT;
-import static com.potatoes.Naengu.ingredients.shared.exception.SystemErrorCode.DATABASE_INCONSISTENCY;
+import static com.potatoes.Naengu.global.exception.CommonErrorCode.INVALID_INPUT;
+import static com.potatoes.Naengu.global.exception.SystemErrorCode.DATABASE_INCONSISTENCY;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.potatoes.Naengu.ingredients.dictionary.ingredient.domain.Ingredient;
-import com.potatoes.Naengu.ingredients.dictionary.ingredient.domain.IngredientAlias;
-import com.potatoes.Naengu.ingredients.dictionary.ingredient.repository.IngredientAliasRepository;
-import com.potatoes.Naengu.ingredients.dictionary.ingredient.repository.IngredientRepository;
-import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
+import com.potatoes.Naengu.ingredient.domain.model.Ingredient;
+import com.potatoes.Naengu.ingredient.domain.model.IngredientAlias;
+import com.potatoes.Naengu.ingredient.repository.IngredientAliasRepository;
+import com.potatoes.Naengu.ingredient.repository.IngredientRepository;
+import com.potatoes.Naengu.ingredient.service.IngredientResolver;
+import com.potatoes.Naengu.global.exception.ApiException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
