@@ -127,6 +127,10 @@ public class KakaoOAuthDevService {
             kakaoUser.setProviderId(providerId);
             kakaoUser.setNickName(nickName);
             userRepository.save(kakaoUser);
+        } else if (kakaoUser.isDeleted()) {    //완전삭제 후 재가입
+            isNewMember = true;
+            kakaoUser.setDeleted(false);
+            userRepository.save(kakaoUser);
         }
 
         //토큰 생성

@@ -5,9 +5,11 @@ import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.SoftDelete;
 
 @Entity
 @Getter
+@SoftDelete
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +29,7 @@ public class Profile {
     @JoinColumn(name="profile_image_id")
     private ProfileImage profileImage;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "fridge_id",nullable = false,unique = true)
     private Fridge fridge;
 
