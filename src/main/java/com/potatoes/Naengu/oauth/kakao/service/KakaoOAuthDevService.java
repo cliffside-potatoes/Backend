@@ -150,7 +150,7 @@ public class KakaoOAuthDevService {
 
     // refresh token으로 새 access token 발급
     public LoginSuccessResponse generateAccessToken(Long providerId) {
-        UserEntity user = userRepository.findByProviderId(providerId)
+        UserEntity user = userRepository.findByProviderIdAndDeletedFalse(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         AuthTokens token = authTokensGenerator.generate(providerId.toString());
