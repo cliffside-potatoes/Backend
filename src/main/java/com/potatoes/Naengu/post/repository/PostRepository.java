@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.post.repository;
 
 import com.potatoes.Naengu.post.domain.model.Post;
+import com.potatoes.Naengu.profile.domain.model.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    List<Post> findAllByProfile(Profile profile);
 
     @Query("""
             SELECT p 
