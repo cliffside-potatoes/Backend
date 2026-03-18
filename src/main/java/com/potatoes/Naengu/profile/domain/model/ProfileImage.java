@@ -3,10 +3,12 @@ package com.potatoes.Naengu.profile.domain.model;
 import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.SoftDelete;
 
 @Entity
 @Table(name = "profile_image")
 @Getter
+@SoftDelete
 public class ProfileImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
