@@ -32,6 +32,9 @@ public class Post {
     @JoinColumn(name= "post_id", nullable = false)
     private List<PostImage> images = new ArrayList<>();
 
+    @Column(nullable = false)
+    private boolean hideLikeCount = false;
+
     protected Post() {}
 
     public Post(Profile profile, String content) {
@@ -45,7 +48,11 @@ public class Post {
         images.add(image);
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public Profile getProfile() { return profile; }
+    public String getContent() { return content; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public List<PostImage> getImages() { return images; }
+    public boolean isHideLikeCount() { return hideLikeCount; }
 }
