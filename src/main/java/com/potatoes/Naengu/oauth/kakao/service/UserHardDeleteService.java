@@ -7,8 +7,8 @@ import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.oauth.kakao.domain.model.UserEntity;
 import com.potatoes.Naengu.oauth.kakao.exception.UserErrorCode;
 import com.potatoes.Naengu.oauth.kakao.repository.UserRepository;
+import com.potatoes.Naengu.post.repository.PostImageRepository;
 import com.potatoes.Naengu.post.repository.PostRepository;
-import com.potatoes.Naengu.profile.domain.model.Profile;
 import com.potatoes.Naengu.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,39 +22,35 @@ public class UserHardDeleteService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final FridgeCategoryRepository fridgeCategoryRepository;
     private final FridgeIngredientRepository fridgeIngredientRepository;
 
     public void hardDelete(Long providerId) {
-        // soft deleted 포함 조회 — 이미 탈퇴한 사용자도 완전 삭제 가능
         UserEntity user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new ApiException(UserErrorCode.USER_NOT_FOUND));
 
+        // FridgeIngredient/Category soft delete: @SoftDelete 필터로 soft-deleted Profile은 조회 안 됨
+        // 이미 이전 시도에서 처리됐을 수 있으므로 best-effort
         profileRepository.findByUserEntityProviderId(providerId).ifPresent(profile -> {
             Fridge fridge = profile.getFridge();
-
-            // FridgeIngredient soft delete (@SoftDelete → UPDATE deleted=true)
             fridgeIngredientRepository.deleteAll(
                     fridgeIngredientRepository.findAllByFridgeCategory_Fridge(fridge)
             );
-
-            // FridgeCategory soft delete (@SoftDelete → UPDATE deleted=true)
             fridgeCategoryRepository.deleteAll(
                     fridgeCategoryRepository.findAllByFridge(fridge)
             );
-
-            // Post soft delete (@SoftDelete → UPDATE deleted=true)
-            postRepository.deleteAll(
-                    postRepository.findAllByProfile(profile)
-            );
-
-            // Profile soft delete (@SoftDelete → UPDATE deleted=true)
-            profileRepository.delete(profile);
         });
 
-        // UserEntity soft delete
-        // Profile이 user_id FK로 물리적 행을 유지하므로 물리 삭제 시 FK 오류 발생
-        // 실제 물리 삭제는 배치 작업에서 Profile 정리 후 처리
-        user.withdraw();
+        // PostImage → Post → RecipeReview → Profile 순서로 hard delete
+        // native SQL로 @SoftDelete 필터 완전 우회 — soft-deleted 행도 포함해서 물리 삭제
+        postImageRepository.hardDeleteAllByProviderId(providerId);
+        postRepository.hardDeleteAllByProviderId(providerId);
+        profileRepository.hardDeleteRecipeReviewImagesByProviderId(providerId);
+        profileRepository.hardDeleteRecipeReviewsByProviderId(providerId);
+        profileRepository.hardDeleteByProviderId(providerId);
+
+        // UserEntity hard delete
+        userRepository.delete(user);
     }
 }
