@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,5 +47,26 @@ public class RecipeFavoriteController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(Api.success());
+    }
+
+    @Operation(summary = "레시피 찜 해제",
+    description = """
+            - 레시피 찜 해제 API
+            - 찜 되어 있으면 해제
+            - 찜 안된 상태여도 성공 처리 (멱등성)
+            """)
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "레시피 찜 해제 성공")
+    })
+    @DeleteMapping("/recipes/{recipeId}/favorites")
+    public ResponseEntity<Api<Void>> delete(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long recipeId
+    ) {
+        long userId = Long.parseLong(userDetails.getUsername());
+        recipeFavoriteService.deleteFavorite(userId, recipeId);
+
+        return ResponseEntity.ok(Api.success());
+
     }
 }
