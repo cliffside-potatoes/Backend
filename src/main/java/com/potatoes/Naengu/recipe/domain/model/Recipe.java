@@ -47,7 +47,7 @@ public abstract class Recipe {
     private String description;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "recipe_image_id", nullable = false)
+    @JoinColumn(name = "recipe_image_id", nullable = true)
     private RecipeImage recipeImage;
 
 

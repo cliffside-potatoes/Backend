@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.recipe.domain.model;
 
 import com.potatoes.Naengu.recipe.domain.vo.Difficulty;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@DiscriminatorValue("TEXT")
 @Table(name = "recipe_with_text")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RecipeWithText extends Recipe {
