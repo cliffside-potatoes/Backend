@@ -1,6 +1,5 @@
 package com.potatoes.Naengu.fridge.domain.model;
 
-import com.potatoes.Naengu.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.fridge.domain.vo.CategoryColor;
 import com.potatoes.Naengu.fridge.domain.vo.StorageType;
 import jakarta.persistence.Column;

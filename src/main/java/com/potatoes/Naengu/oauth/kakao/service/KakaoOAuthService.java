@@ -131,6 +131,10 @@ public class KakaoOAuthService {
             kakaoUser.setProviderId(providerId);
             kakaoUser.setNickName(nickName);
             userRepository.save(kakaoUser);
+        } else if (kakaoUser.isDeleted()) {    //완전삭제 후 재가입
+            isNewMember = true;
+            kakaoUser.setDeleted(false);
+            userRepository.save(kakaoUser);
         }
 
         //토큰 생성
@@ -150,7 +154,7 @@ public class KakaoOAuthService {
 
     // refresh token으로 새 access token 발급
     public LoginSuccessResponse generateAccessToken(Long providerId) {
-        UserEntity user = userRepository.findByProviderId(providerId)
+        UserEntity user = userRepository.findByProviderIdAndDeletedFalse(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         AuthTokens token = authTokensGenerator.generate(providerId.toString());
