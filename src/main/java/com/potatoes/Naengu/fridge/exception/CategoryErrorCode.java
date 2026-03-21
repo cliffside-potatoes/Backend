@@ -33,6 +33,22 @@ public enum CategoryErrorCode implements ErrorCode {
             "CATEGORY_NAME_BLANK",
             "카테고리 이름은 공백일 수 없습니다.",
             HttpStatus.BAD_REQUEST
+    ),
+    CATEGORY_ORDER_DUPLICATE_ID(
+            "CATEGORY_ORDER_DUPLICATE_ID",
+            "중복된 카테고리 ID가 포함되어 있습니다.",
+            HttpStatus.BAD_REQUEST
+    ),
+    CATEGORY_ORDER_DUPLICATE_POSITION(
+            "CATEGORY_ORDER_DUPLICATE_POSITION",
+            "중복된 순서 값이 포함되어 있습니다.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    CATEGORY_ORDER_INVALID_POSITION(
+            "CATEGORY_ORDER_INVALID_POSITION",
+            "순서 값은 1부터 요청 개수까지 연속된 값이어야 합니다.",
+            HttpStatus.BAD_REQUEST
     );
 
     private final String code;

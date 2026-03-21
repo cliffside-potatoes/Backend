@@ -35,4 +35,9 @@ public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, 
     Optional<FridgeCategory> findByIdAndFridge(Long id, Fridge fridge);
 
     List<FridgeCategory> findAllByFridgeIdOrderByStorageTypeAscOrderIndexAsc(Long fridgeId);
+
+    List<FridgeCategory> findAllByFridgeAndStorageTypeOrderByOrderIndexAsc(
+            Fridge fridge,
+            StorageType storageType
+    );
 }
