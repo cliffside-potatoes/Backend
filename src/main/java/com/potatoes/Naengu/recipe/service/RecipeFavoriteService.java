@@ -41,6 +41,17 @@ public class RecipeFavoriteService {
 
     }
 
+    @Transactional
+    public void deleteFavorite(long userId, Long recipeId) {
+        Profile profile = loadProfile(userId);
+        Recipe recipe = loadRecipe(recipeId);
+
+        profileFavoriteRecipeRepository
+                .findByProfileAndRecipe(profile,recipe)
+                .ifPresent(profileFavoriteRecipeRepository::delete);
+
+    }
+
     private Profile loadProfile(long userId) {
         return profileRepository.findByUserEntityProviderId(userId)
                 .orElseThrow(() -> new ApiException(RecipeReviewErrorCode.PROFILE_NOT_FOUND));
