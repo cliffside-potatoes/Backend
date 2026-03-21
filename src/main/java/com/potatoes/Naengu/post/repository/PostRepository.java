@@ -18,13 +18,35 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findLatestAll(Pageable pageable);
 
     @Query("""
-            SELECT p 
-            FROM Post p 
-            WHERE p.createdAt < :cursorUpdatedAt OR (p.createdAt = :cursorUpdatedAt AND p.id < :cursorId) 
+            SELECT p
+            FROM Post p
+            WHERE p.createdAt < :cursorCreatedAt OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)
             ORDER BY p.createdAt DESC, p.id DESC
     """)
     List<Post> findLatestAfterCursor(
-            @Param("cursorUpdatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT p
+            FROM Post p
+            WHERE p.profile.id = :profileId
+            ORDER BY p.createdAt DESC, p.id DESC
+    """)
+    List<Post> findMyLatestAll(@Param("profileId") Long profileId, Pageable pageable);
+
+    @Query("""
+            SELECT p
+            FROM Post p
+            WHERE p.profile.id = :profileId
+              AND (p.createdAt < :cursorCreatedAt OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId))
+            ORDER BY p.createdAt DESC, p.id DESC
+    """)
+    List<Post> findMyLatestAfterCursor(
+            @Param("profileId") Long profileId,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );

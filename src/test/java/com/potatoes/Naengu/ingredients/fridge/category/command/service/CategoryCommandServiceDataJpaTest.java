@@ -1,22 +1,23 @@
 package com.potatoes.Naengu.ingredients.fridge.category.command.service;
 
-import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_DUPLICATE;
-import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_FORBIDDEN;
-import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_NAME_BLANK;
-import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_NOT_FOUND;
-import static com.potatoes.Naengu.ingredients.fridge.category.command.exception.CategoryErrorCode.CATEGORY_UPDATE_EMPTY;
+import static com.potatoes.Naengu.fridge.exception.CategoryErrorCode.CATEGORY_DUPLICATE;
+import static com.potatoes.Naengu.fridge.exception.CategoryErrorCode.CATEGORY_FORBIDDEN;
+import static com.potatoes.Naengu.fridge.exception.CategoryErrorCode.CATEGORY_NAME_BLANK;
+import static com.potatoes.Naengu.fridge.exception.CategoryErrorCode.CATEGORY_NOT_FOUND;
+import static com.potatoes.Naengu.fridge.exception.CategoryErrorCode.CATEGORY_UPDATE_EMPTY;
 import static org.assertj.core.api.Assertions.*;
 
-import com.potatoes.Naengu.ingredients.fridge.category.command.command.CreateCategoryCommand;
-import com.potatoes.Naengu.ingredients.fridge.category.command.command.UpdateCategoryCommand;
-import com.potatoes.Naengu.ingredients.fridge.category.repository.FridgeCategoryRepository;
-import com.potatoes.Naengu.ingredients.fridge.domain.model.Fridge;
-import com.potatoes.Naengu.ingredients.fridge.domain.model.category.FridgeCategory;
-import com.potatoes.Naengu.ingredients.fridge.domain.vo.CategoryColor;
-import com.potatoes.Naengu.ingredients.fridge.domain.vo.StorageType;
-import com.potatoes.Naengu.ingredients.fridge.repository.FridgeRepository;
-import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
-import com.potatoes.Naengu.ingredients.shared.exception.ErrorCode;
+import com.potatoes.Naengu.fridge.service.CategoryService;
+import com.potatoes.Naengu.fridge.dto.CreateCategoryCommand;
+import com.potatoes.Naengu.fridge.dto.UpdateCategoryCommand;
+import com.potatoes.Naengu.fridge.repository.FridgeCategoryRepository;
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
+import com.potatoes.Naengu.fridge.domain.model.FridgeCategory;
+import com.potatoes.Naengu.fridge.domain.vo.CategoryColor;
+import com.potatoes.Naengu.fridge.domain.vo.StorageType;
+import com.potatoes.Naengu.fridge.repository.FridgeRepository;
+import com.potatoes.Naengu.global.exception.ApiException;
+import com.potatoes.Naengu.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 @EntityScan("com.potatoes.Naengu")
 @EnableJpaRepositories("com.potatoes.Naengu")
-@Import(CategoryCommandService.class)
+@Import(CategoryService.class)
 class CategoryCommandServiceDataJpaTest {
 
     @Autowired
-    private CategoryCommandService service;
+    private CategoryService service;
 
     @Autowired
     private FridgeCategoryRepository repository;
