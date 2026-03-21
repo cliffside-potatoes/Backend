@@ -15,6 +15,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,6 +53,9 @@ public abstract class Recipe {
     @JoinColumn(name = "recipe_image_id", nullable = true)
     private RecipeImage recipeImage;
 
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
 
     protected final void initBase(
             String title,
@@ -68,6 +72,7 @@ public abstract class Recipe {
         this.cookingTime = cookingTime;
         this.description = description.trim();
         this.recipeImage = recipeImage;
+        this.createdAt = LocalDateTime.now();
     }
 
     private void validateBase(
