@@ -51,6 +51,9 @@ public class RecipeIngredient {
     @JoinColumn(name = "ingredient_id",nullable = false)
     private Ingredient ingredient;
 
+    @Column(nullable = true)
+    private String amount;
+
     private RecipeIngredient(Recipe recipe, Ingredient ingredient) {
         validate(recipe, ingredient);
         this.recipe = recipe;

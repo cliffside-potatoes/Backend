@@ -24,20 +24,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class S3Controller {
     private final FileUploadService fileUploadService;
 
-    @Operation(summary = "Presigned URL 발급", description = "S3에 직접 업로드하기 위한 Presigned URL을 발급합니다. type: post, profile, recipe")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Presigned URL 발급 성공"),
-            @ApiResponse(responseCode = "400", description = "지원하지 않는 type"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
-    })
+    /**
+     * S3에게 pre-signed URL (권한) 요청하는 엔드포인트
+     * 프론트에서 이 URL을 받아서 AWS S3에 직접 업로드함.
+     *
+     * @param imageDTO 파일 이름 정보를 담은 DTO
+     * @return AWS S3에 업로드할 수 있는 Presigned URL
+     */
     @PostMapping("/presigned/{type}")
-    public ResponseEntity<Api<PresignedUrlResponseDTO>> createPresignedUrl(
+    public ResponseEntity<PresignedUrlResponseDTO> createPresignedUrl(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "업로드 대상 타입 (post, profile, recipe)", example = "post")
             @PathVariable String type,
             @RequestBody ImageRequestDTO imageDTO) {
 
-        String path = switch (type) {
+        // S3 내 저장될 폴더 경로
+        String path = switch(type){
             case "post" -> "public/post";
             case "profile" -> "public/profile";
             case "recipe" -> "public/recipe";
@@ -47,8 +49,14 @@ public class S3Controller {
             default -> throw new IllegalArgumentException("지원하지 않는 type: " + type);
         };
 
-        PresignedUrlResponseDTO result = fileUploadService.getPreSignedUrl(path, imageDTO.getImageName());
+        String s3Key = path + "/" + imageDTO.getImageName();  // 업로드될 S3 Key 생성
 
-        return ResponseEntity.ok(Api.success(result));
+        PresignedUrlResponseDTO presignedUrl = fileUploadService.getPreSignedUrl(path,imageDTO.getImageName());
+
+        return ResponseEntity.ok(presignedUrl);  // Presigned URL과 S3 Key 반환
     }
+
+
+
+
 }

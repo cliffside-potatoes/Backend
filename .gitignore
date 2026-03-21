@@ -8,8 +8,11 @@ build/
 # local config (do not commit)
 src/main/resources/application-local.yml
 src/main/resources/application-local.yaml
+
 .claude
 CLAUDE.md
+AGENTS.md
+data-recipes.sql
 
 ### STS ###
 .apt_generated
@@ -41,3 +44,5 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
