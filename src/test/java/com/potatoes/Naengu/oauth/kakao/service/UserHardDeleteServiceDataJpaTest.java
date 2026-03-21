@@ -28,8 +28,10 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
+@Sql(scripts = "classpath:hard-delete-test-tables.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @EntityScan("com.potatoes.Naengu")
 @EnableJpaRepositories("com.potatoes.Naengu")
 @Import(UserHardDeleteService.class)
@@ -80,7 +82,7 @@ class UserHardDeleteServiceDataJpaTest {
     }
 
     @Test
-    @DisplayName("hardDelete 호출 시 UserEntity가 soft deleted 처리된다")
+    @DisplayName("hardDelete 호출 시 UserEntity가 hard deleted 처리된다")
     void hardDelete_success() {
         UserEntity user = savedUser();
         Fridge fridge = savedFridge();
@@ -88,8 +90,7 @@ class UserHardDeleteServiceDataJpaTest {
 
         service.hardDelete(PROVIDER_ID);
 
-        UserEntity updated = userRepository.findByProviderId(PROVIDER_ID).orElseThrow();
-        assertThat(updated.isDeleted()).isTrue();
+        assertThat(userRepository.findByProviderId(PROVIDER_ID)).isEmpty();
     }
 
     @Test
@@ -147,14 +148,13 @@ class UserHardDeleteServiceDataJpaTest {
     }
 
     @Test
-    @DisplayName("Profile이 없는 사용자도 UserEntity soft delete가 정상 처리된다")
+    @DisplayName("Profile이 없는 사용자도 UserEntity hard delete가 정상 처리된다")
     void hardDelete_without_profile() {
         savedUser();
 
         service.hardDelete(PROVIDER_ID);
 
-        UserEntity updated = userRepository.findByProviderId(PROVIDER_ID).orElseThrow();
-        assertThat(updated.isDeleted()).isTrue();
+        assertThat(userRepository.findByProviderId(PROVIDER_ID)).isEmpty();
     }
 
     @Test
@@ -170,8 +170,7 @@ class UserHardDeleteServiceDataJpaTest {
         // findByProviderId로 soft deleted 사용자도 조회 가능
         service.hardDelete(PROVIDER_ID);
 
-        UserEntity updated = userRepository.findByProviderId(PROVIDER_ID).orElseThrow();
-        assertThat(updated.isDeleted()).isTrue();
+        assertThat(userRepository.findByProviderId(PROVIDER_ID)).isEmpty();
         assertThat(profileRepository.findByUserEntityProviderId(PROVIDER_ID)).isEmpty();
     }
 }

@@ -9,13 +9,15 @@ import org.springframework.data.repository.query.Param;
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
 
     // native SQL — @SoftDelete 필터 우회, soft-deleted 행 포함 전체 물리 삭제
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = """
-            DELETE pi FROM post_image pi
-            INNER JOIN post p ON pi.post_id = p.id
-            INNER JOIN profile pr ON p.profile_id = pr.id
-            INNER JOIN user_entity u ON pr.user_id = u.id
-            WHERE u.provider_id = :providerId
+            DELETE FROM post_image
+            WHERE post_id IN (
+                SELECT p.id FROM post p
+                INNER JOIN profile pr ON p.profile_id = pr.id
+                INNER JOIN user_entity u ON pr.user_id = u.id
+                WHERE u.provider_id = :providerId
+            )
             """, nativeQuery = true)
     void hardDeleteAllByProviderId(@Param("providerId") Long providerId);
 }

@@ -16,12 +16,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByProfile(Profile profile);
 
     // native SQL — @SoftDelete 필터 우회, soft-deleted 행 포함 전체 물리 삭제
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = """
-            DELETE p FROM post p
-            INNER JOIN profile pr ON p.profile_id = pr.id
-            INNER JOIN user_entity u ON pr.user_id = u.id
-            WHERE u.provider_id = :providerId
+            DELETE FROM post
+            WHERE profile_id IN (
+                SELECT pr.id FROM profile pr
+                INNER JOIN user_entity u ON pr.user_id = u.id
+                WHERE u.provider_id = :providerId
+            )
             """, nativeQuery = true)
     void hardDeleteAllByProviderId(@Param("providerId") Long providerId);
 
