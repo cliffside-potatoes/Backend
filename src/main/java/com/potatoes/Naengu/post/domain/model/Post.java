@@ -2,6 +2,7 @@ package com.potatoes.Naengu.post.domain.model;
 
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SoftDelete;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "post")
+@SoftDelete
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

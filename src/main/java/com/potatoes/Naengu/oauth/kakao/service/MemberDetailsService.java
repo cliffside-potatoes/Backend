@@ -19,7 +19,7 @@ public class MemberDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String providerId) throws UsernameNotFoundException {
 
-        UserEntity user = userRepository.findByProviderId(Long.valueOf(providerId))
+        UserEntity user = userRepository.findByProviderIdAndDeletedFalse(Long.valueOf(providerId))
                 .orElseThrow(() -> new UsernameNotFoundException("회원 없음"));
 
         return new CustomUserDetails(user);

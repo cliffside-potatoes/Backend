@@ -8,6 +8,12 @@ public enum RecipeErrorCode implements ErrorCode {
             "RECIPE_TYPE_MISMATCH",
             "레시피 타입이 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST
+    ),
+
+    RECIPE_NOT_FOUND(
+            "RECIPE_NOT_FOUND",
+            "존재하지 않는 레시피 입니다.",
+            HttpStatus.NOT_FOUND
     );
 
     private final String code;

@@ -1,7 +1,6 @@
 package com.potatoes.Naengu.fridge.domain.model;
 
 import com.potatoes.Naengu.ingredient.domain.model.Ingredient;
-import com.potatoes.Naengu.fridge.domain.model.FridgeCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
