@@ -1,4 +1,4 @@
-package com.potatoes.Naengu.post.dto;
+package com.potatoes.Naengu.global.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

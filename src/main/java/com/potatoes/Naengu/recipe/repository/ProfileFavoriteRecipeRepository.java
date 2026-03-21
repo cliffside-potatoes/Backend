@@ -11,4 +11,6 @@ public interface ProfileFavoriteRecipeRepository extends JpaRepository<ProfileFa
     boolean existsByProfileAndRecipe(Profile profile, Recipe recipe);
 
     Optional<ProfileFavoriteRecipe> findByProfileAndRecipe(Profile profile, Recipe recipe);
+
+    long countByRecipe(Recipe recipe);
 }

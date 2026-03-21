@@ -4,7 +4,7 @@ import com.potatoes.Naengu.file.service.FileUploadService;
 import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.post.domain.model.Post;
 import com.potatoes.Naengu.post.domain.vo.SortType;
-import com.potatoes.Naengu.post.dto.CursorResponse;
+import com.potatoes.Naengu.global.dto.CursorResponse;
 import com.potatoes.Naengu.post.dto.FeedItemResponse;
 import com.potatoes.Naengu.post.dto.FeedQueryRequest;
 import com.potatoes.Naengu.post.dto.FeedResponse;
