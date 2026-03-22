@@ -29,7 +29,8 @@ public class RecipeQueryController {
                     - keyword 없으면 전체 조회
                     - sort 미입력 시 기본값 LATEST
                     - cursorCreatedAt과 cursorId는 항상 함께 전달해야 함
-                    """)
+                    """
+            )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "레시피 조회 성공"),
             @ApiResponse(responseCode = "400", description = "커서 값 또는 정렬 방식이 올바르지 않습니다."),
