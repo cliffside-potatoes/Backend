@@ -2,6 +2,8 @@ package com.potatoes.Naengu.recipe.controller;
 
 import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
+import com.potatoes.Naengu.recipe.domain.vo.RecipeSortType;
+import com.potatoes.Naengu.recipe.dto.RecipeMatchResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchRequest;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchResponse;
 import com.potatoes.Naengu.recipe.query.RecipeQueryService;
@@ -27,8 +29,9 @@ public class RecipeQueryController {
             description = """
                     - 커서 기반 무한 스크롤 레시피 조회
                     - keyword 없으면 전체 조회
-                    - sort 미입력 시 기본값 LATEST
-                    - cursorCreatedAt과 cursorId는 항상 함께 전달해야 함
+                    - sort: LATEST(기본값) | MATCH_COUNT(냉장고 재료 매칭 순)
+                    - LATEST: cursorCreatedAt과 cursorId는 항상 함께 전달해야 함
+                    - MATCH_COUNT: cursorMatchCount와 cursorId는 항상 함께 전달해야 함
                     """)
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "레시피 조회 성공"),
@@ -36,16 +39,24 @@ public class RecipeQueryController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/recipes")
-    public ResponseEntity<Api<RecipeSearchResponse>> search(
+    public ResponseEntity<Api<?>> search(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "LATEST") String sort,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String cursorCreatedAt,
-            @RequestParam(required = false) Long cursorId
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) Integer cursorMatchCount
     ) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort);
+        RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort, cursorMatchCount);
+        RecipeSortType sortType = RecipeSortType.from(sort);
+
+        if (sortType == RecipeSortType.MATCH_COUNT) {
+            RecipeMatchResponse response = recipeQueryService.searchByMatchCount(userId, request);
+            return ResponseEntity.ok(Api.success(response));
+        }
+
         RecipeSearchResponse response = recipeQueryService.search(userId, request);
         return ResponseEntity.ok(Api.success(response));
     }

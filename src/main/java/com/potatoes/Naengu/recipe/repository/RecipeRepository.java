@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
@@ -39,6 +40,62 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     List<Recipe> findLatestByKeywordAfterCursor(
             @Param("keyword") String keyword,
             @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN RecipeIngredient ri ON ri.recipe = r AND ri.ingredient.id IN :fridgeIngredientIds
+            GROUP BY r
+            ORDER BY COUNT(ri) DESC, r.id DESC
+            """)
+    List<Recipe> findTopByMatchCount(
+            @Param("fridgeIngredientIds") Set<Long> fridgeIngredientIds,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN RecipeIngredient ri ON ri.recipe = r AND ri.ingredient.id IN :fridgeIngredientIds
+            WHERE r.title LIKE %:keyword%
+            GROUP BY r
+            ORDER BY COUNT(ri) DESC, r.id DESC
+            """)
+    List<Recipe> findTopByMatchCountWithKeyword(
+            @Param("fridgeIngredientIds") Set<Long> fridgeIngredientIds,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN RecipeIngredient ri ON ri.recipe = r AND ri.ingredient.id IN :fridgeIngredientIds
+            GROUP BY r
+            HAVING COUNT(ri) < :cursorMatchCount
+                OR (COUNT(ri) = :cursorMatchCount AND r.id < :cursorId)
+            ORDER BY COUNT(ri) DESC, r.id DESC
+            """)
+    List<Recipe> findNextByMatchCount(
+            @Param("fridgeIngredientIds") Set<Long> fridgeIngredientIds,
+            @Param("cursorMatchCount") int cursorMatchCount,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN RecipeIngredient ri ON ri.recipe = r AND ri.ingredient.id IN :fridgeIngredientIds
+            WHERE r.title LIKE %:keyword%
+            GROUP BY r
+            HAVING COUNT(ri) < :cursorMatchCount
+                OR (COUNT(ri) = :cursorMatchCount AND r.id < :cursorId)
+            ORDER BY COUNT(ri) DESC, r.id DESC
+            """)
+    List<Recipe> findNextByMatchCountWithKeyword(
+            @Param("fridgeIngredientIds") Set<Long> fridgeIngredientIds,
+            @Param("keyword") String keyword,
+            @Param("cursorMatchCount") int cursorMatchCount,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
