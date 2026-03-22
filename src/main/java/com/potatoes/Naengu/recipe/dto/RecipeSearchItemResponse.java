@@ -1,14 +1,16 @@
 package com.potatoes.Naengu.recipe.dto;
 
-import java.util.List;
-
 public record RecipeSearchItemResponse(
         Long id,
         String title,
         String thumbnailUrl,
-        List<String> tags,
+        String source,
+        int cookingTime,
+        int servings,
+        String difficulty,
         int likeCount,
         int reviewCount,
+        int totalIngredientCount,
         int matchedIngredientCount,
-        String createdAt
+        boolean liked
 ) {}

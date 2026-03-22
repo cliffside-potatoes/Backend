@@ -5,5 +5,6 @@ public record RecipeSearchRequest(
         String keyword,
         String cursorCreatedAt,
         Long cursorId,
-        String sort
+        String sort,
+        Integer cursorMatchCount
 ) {}
