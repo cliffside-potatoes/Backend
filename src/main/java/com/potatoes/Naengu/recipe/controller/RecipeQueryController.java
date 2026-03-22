@@ -7,6 +7,8 @@ import com.potatoes.Naengu.recipe.dto.RecipeLikeResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeMatchResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchRequest;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchResponse;
+import com.potatoes.Naengu.recipe.dto.RecipeDetailResponse;
+import com.potatoes.Naengu.recipe.query.RecipeDetailQueryService;
 import com.potatoes.Naengu.recipe.query.RecipeQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeQueryController {
 
     private final RecipeQueryService recipeQueryService;
+    private final RecipeDetailQueryService recipeDetailQueryService;
 
     @Operation(summary = "레시피 검색 조회",
             description = """
@@ -67,5 +71,21 @@ public class RecipeQueryController {
 
         RecipeSearchResponse response = recipeQueryService.search(userId, request);
         return ResponseEntity.ok(Api.success(response));
+    }
+
+    @Operation(summary = "레시피 상세 조회",
+            description = "레시피 기본 정보, 타입별 상세(링크/텍스트), 냉장고 재료 매칭 정보를 반환한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "레시피 상세 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "레시피를 찾을 수 없습니다.")
+    })
+    @GetMapping("/recipes/details/{recipeId}")
+    public ResponseEntity<Api<RecipeDetailResponse>> getDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long recipeId
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        return ResponseEntity.ok(Api.success(recipeDetailQueryService.getDetail(userId, recipeId)));
     }
 }
