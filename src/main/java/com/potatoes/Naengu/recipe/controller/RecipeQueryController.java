@@ -3,6 +3,7 @@ package com.potatoes.Naengu.recipe.controller;
 import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
 import com.potatoes.Naengu.recipe.domain.vo.RecipeSortType;
+import com.potatoes.Naengu.recipe.dto.RecipeLikeResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeMatchResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchRequest;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchResponse;
@@ -29,9 +30,10 @@ public class RecipeQueryController {
             description = """
                     - 커서 기반 무한 스크롤 레시피 조회
                     - keyword 없으면 전체 조회
-                    - sort: LATEST(기본값) | MATCH_COUNT(냉장고 재료 매칭 순)
+                    - sort: LATEST(기본값) | MATCH_COUNT(냉장고 재료 매칭 순) | LIKE_COUNT(좋아요 순)
                     - LATEST: cursorCreatedAt과 cursorId는 항상 함께 전달해야 함
                     - MATCH_COUNT: cursorMatchCount와 cursorId는 항상 함께 전달해야 함
+                    - LIKE_COUNT: cursorLikeCount와 cursorId는 항상 함께 전달해야 함
                     """)
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "레시피 조회 성공"),
@@ -46,14 +48,20 @@ public class RecipeQueryController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String cursorCreatedAt,
             @RequestParam(required = false) Long cursorId,
-            @RequestParam(required = false) Integer cursorMatchCount
+            @RequestParam(required = false) Integer cursorMatchCount,
+            @RequestParam(required = false) Integer cursorLikeCount
     ) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort, cursorMatchCount);
+        RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort, cursorMatchCount, cursorLikeCount);
         RecipeSortType sortType = RecipeSortType.from(sort);
 
         if (sortType == RecipeSortType.MATCH_COUNT) {
             RecipeMatchResponse response = recipeQueryService.searchByMatchCount(userId, request);
+            return ResponseEntity.ok(Api.success(response));
+        }
+
+        if (sortType == RecipeSortType.LIKE_COUNT) {
+            RecipeLikeResponse response = recipeQueryService.searchByLikeCount(userId, request);
             return ResponseEntity.ok(Api.success(response));
         }
 

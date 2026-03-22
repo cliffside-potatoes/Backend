@@ -99,4 +99,54 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
+            GROUP BY r
+            ORDER BY COUNT(pfr) DESC, r.id DESC
+            """)
+    List<Recipe> findTopByLikeCount(Pageable pageable);
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
+            WHERE r.title LIKE %:keyword%
+            GROUP BY r
+            ORDER BY COUNT(pfr) DESC, r.id DESC
+            """)
+    List<Recipe> findTopByLikeCountWithKeyword(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
+            GROUP BY r
+            HAVING COUNT(pfr) < :cursorLikeCount
+                OR (COUNT(pfr) = :cursorLikeCount AND r.id < :cursorId)
+            ORDER BY COUNT(pfr) DESC, r.id DESC
+            """)
+    List<Recipe> findNextByLikeCount(
+            @Param("cursorLikeCount") int cursorLikeCount,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
+            WHERE r.title LIKE %:keyword%
+            GROUP BY r
+            HAVING COUNT(pfr) < :cursorLikeCount
+                OR (COUNT(pfr) = :cursorLikeCount AND r.id < :cursorId)
+            ORDER BY COUNT(pfr) DESC, r.id DESC
+            """)
+    List<Recipe> findNextByLikeCountWithKeyword(
+            @Param("keyword") String keyword,
+            @Param("cursorLikeCount") int cursorLikeCount,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 }
