@@ -2,6 +2,7 @@ package com.potatoes.Naengu.recipe.query;
 
 import com.potatoes.Naengu.file.service.FileUploadService;
 import com.potatoes.Naengu.fridge.repository.FridgeIngredientRepository;
+import com.potatoes.Naengu.global.dto.LikeCountCursorResponse;
 import com.potatoes.Naengu.global.dto.MatchCountCursorResponse;
 import com.potatoes.Naengu.global.dto.CursorResponse;
 import com.potatoes.Naengu.global.exception.ApiException;
@@ -10,6 +11,7 @@ import com.potatoes.Naengu.profile.repository.ProfileRepository;
 import com.potatoes.Naengu.recipe.domain.model.Recipe;
 import com.potatoes.Naengu.recipe.domain.model.RecipeWithLink;
 import com.potatoes.Naengu.recipe.domain.vo.RecipeSortType;
+import com.potatoes.Naengu.recipe.dto.RecipeLikeResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeMatchResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchItemResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchRequest;
@@ -118,6 +120,56 @@ public class RecipeQueryService {
         return new RecipeMatchResponse(items, hasNext, nextCursor);
     }
 
+    @Transactional(readOnly = true)
+    public RecipeLikeResponse searchByLikeCount(Long userId, RecipeSearchRequest request) {
+        validateLikeCountCursor(request);
+
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(RecipeErrorCode.RECIPE_NOT_FOUND));
+
+        Set<Long> fridgeIngredientIds = fridgeIngredientRepository
+                .findAllByFridgeCategory_Fridge(profile.getFridge())
+                .stream()
+                .map(fi -> fi.getIngredient().getId())
+                .collect(Collectors.toSet());
+
+        List<Recipe> recipes = fetchLikeCountRecipes(request);
+
+        boolean hasNext = recipes.size() > request.size();
+        if (hasNext) {
+            recipes = recipes.subList(0, request.size());
+        }
+
+        List<RecipeSearchItemResponse> items = recipes.stream()
+                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .toList();
+
+        LikeCountCursorResponse nextCursor = null;
+        if (hasNext && !recipes.isEmpty()) {
+            Recipe last = recipes.get(recipes.size() - 1);
+            int lastLikeCount = (int) profileFavoriteRecipeRepository.countByRecipe(last);
+            nextCursor = new LikeCountCursorResponse(lastLikeCount, last.getId());
+        }
+
+        return new RecipeLikeResponse(items, hasNext, nextCursor);
+    }
+
+    private List<Recipe> fetchLikeCountRecipes(RecipeSearchRequest request) {
+        PageRequest pageable = PageRequest.of(0, request.size() + 1);
+        boolean hasKeyword = request.keyword() != null && !request.keyword().isBlank();
+        boolean hasCursor = request.cursorLikeCount() != null;
+
+        if (!hasCursor && !hasKeyword) {
+            return recipeRepository.findTopByLikeCount(pageable);
+        } else if (!hasCursor) {
+            return recipeRepository.findTopByLikeCountWithKeyword(request.keyword(), pageable);
+        } else if (!hasKeyword) {
+            return recipeRepository.findNextByLikeCount(request.cursorLikeCount(), request.cursorId(), pageable);
+        } else {
+            return recipeRepository.findNextByLikeCountWithKeyword(request.keyword(), request.cursorLikeCount(), request.cursorId(), pageable);
+        }
+    }
+
     private List<Recipe> fetchLatestRecipes(RecipeSearchRequest request) {
         PageRequest pageable = PageRequest.of(0, request.size() + 1);
         boolean hasKeyword = request.keyword() != null && !request.keyword().isBlank();
@@ -189,6 +241,14 @@ public class RecipeQueryService {
         boolean hasCursorCreatedAt = request.cursorCreatedAt() != null;
         boolean hasCursorId = request.cursorId() != null;
         if (hasCursorCreatedAt != hasCursorId) {
+            throw new ApiException(RecipeErrorCode.INVALID_CURSOR);
+        }
+    }
+
+    private void validateLikeCountCursor(RecipeSearchRequest request) {
+        boolean hasCursorLikeCount = request.cursorLikeCount() != null;
+        boolean hasCursorId = request.cursorId() != null;
+        if (hasCursorLikeCount != hasCursorId) {
             throw new ApiException(RecipeErrorCode.INVALID_CURSOR);
         }
     }

@@ -6,7 +6,7 @@ import com.potatoes.Naengu.recipe.exception.RecipeErrorCode;
 import java.util.Arrays;
 
 public enum RecipeSortType {
-    LATEST, MATCH_COUNT;
+    LATEST, MATCH_COUNT, LIKE_COUNT;
 
     public static RecipeSortType from(String value) {
         return Arrays.stream(values())
