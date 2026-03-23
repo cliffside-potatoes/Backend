@@ -6,6 +6,8 @@ import com.potatoes.Naengu.post.domain.model.PostImage;
 import com.potatoes.Naengu.post.dto.PostCreateRequest;
 import com.potatoes.Naengu.post.dto.PostCreateResponse;
 import com.potatoes.Naengu.post.dto.PostImageRequest;
+import com.potatoes.Naengu.post.dto.PostUpdateRequest;
+import com.potatoes.Naengu.post.dto.PostUpdateResponse;
 import com.potatoes.Naengu.post.exception.PostErrorCode;
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import com.potatoes.Naengu.post.repository.PostRepository;
@@ -42,5 +44,28 @@ public class PostService {
 
         Post saved = postRepository.save(post);
         return new PostCreateResponse(saved.getId());
+    }
+
+    @Transactional
+    public PostUpdateResponse updatePost(Long userId, Long postId, PostUpdateRequest req) {
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(PostErrorCode.PROFILE_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ApiException(PostErrorCode.POST_NOT_FOUND));
+
+        if (!post.getProfile().getId().equals(profile.getId())) {
+            throw new ApiException(PostErrorCode.FORBIDDEN);
+        }
+
+        List<PostImage> newImages = req.images() != null
+                ? req.images().stream()
+                        .map(img -> new PostImage(img.s3Key(), img.contentType(), img.size(), img.accessType()))
+                        .toList()
+                : List.of();
+
+        post.update(req.content(), newImages);
+
+        return new PostUpdateResponse(post.getId());
     }
 }
