@@ -2,24 +2,30 @@ package com.potatoes.Naengu.fridge.controller;
 
 import com.potatoes.Naengu.fridge.dto.CreateCategoryRequest;
 import com.potatoes.Naengu.fridge.dto.CreateCategoryResponse;
+import com.potatoes.Naengu.fridge.dto.UpdateCategoryOrderRequest;
 import com.potatoes.Naengu.fridge.dto.UpdateCategoryRequest;
 import com.potatoes.Naengu.fridge.dto.UpdateCategoryResponse;
 import com.potatoes.Naengu.fridge.service.CategoryService;
 import com.potatoes.Naengu.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.auth.annotation.AuthFridge;
+import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -91,6 +97,70 @@ public class CategoryController {
             @PathVariable Long fridgeCategoryId
     ) {
         service.delete(fridge, fridgeCategoryId);
+        return ResponseEntity.ok(Api.success());
+    }
+
+    @Operation(
+            summary = "카테고리 순서 수정",
+            description = """
+                드래그 앤 드롭 결과를 반영하여 storageType별 카테고리 순서를 수정합니다.
+                - storageType 내 전체 카테고리 순서를 모두 전달해야 합니다.
+                - position은 1부터 시작하며 연속되어야 합니다.
+                """
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = {
+                            @ExampleObject(
+                                    name = "냉장 카테고리 순서 수정 예시",
+                                    value = """
+                                        {
+                                          "storageType": "REFRIGERATED",
+                                          "orders": [
+                                            {
+                                              "categoryId": 12,
+                                              "position": 1
+                                            },
+                                            {
+                                              "categoryId": 7,
+                                              "position": 2
+                                            },
+                                            {
+                                              "categoryId": 3,
+                                              "position": 3
+                                            }
+                                          ]
+                                        }
+                                        """
+                            )
+                    }
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "카테고리 순서 수정 성공"),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = """
+                        잘못된 요청
+                        - 요청에 중복된 카테고리 ID가 포함된 경우
+                        - 요청에 중복된 순서 값이 포함된 경우
+                        - 요청의 순서 값이 1부터 연속되지 않은 경우
+                        """
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않거나 접근할 수 없는 카테고리가 포함된 경우"
+            )
+    })
+    @PutMapping("/ingredients/categories/order")
+    public ResponseEntity<Api<Void>> updateOrder(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UpdateCategoryOrderRequest request
+    ) {
+        long userId = Long.parseLong(userDetails.getUsername());
+        service.updateOrder(userId, request);
         return ResponseEntity.ok(Api.success());
     }
 

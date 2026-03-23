@@ -84,4 +84,8 @@ public class FridgeCategory {
         if (newColor != null) this.color = newColor;
     }
 
+    public void changeOrderIndex(int newOrderIndex) {
+        this.orderIndex = newOrderIndex;
+    }
+
 }
