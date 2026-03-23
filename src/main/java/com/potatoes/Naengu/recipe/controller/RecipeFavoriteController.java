@@ -2,6 +2,8 @@ package com.potatoes.Naengu.recipe.controller;
 
 import com.potatoes.Naengu.global.api.Api;
 import com.potatoes.Naengu.oauth.kakao.details.CustomUserDetails;
+import com.potatoes.Naengu.recipe.dto.FavoriteRecipesResponse;
+import com.potatoes.Naengu.recipe.query.RecipeQueryService;
 import com.potatoes.Naengu.recipe.service.RecipeFavoriteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,8 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "recipe-favorite-controller",description = "레시피 찜 생성/해제 API")
@@ -20,10 +24,36 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeFavoriteController {
 
     private final RecipeFavoriteService recipeFavoriteService;
+    private final RecipeQueryService recipeQueryService;
 
-
-    public RecipeFavoriteController(RecipeFavoriteService recipeFavoriteService) {
+    public RecipeFavoriteController(RecipeFavoriteService recipeFavoriteService,
+                                    RecipeQueryService recipeQueryService) {
         this.recipeFavoriteService = recipeFavoriteService;
+        this.recipeQueryService = recipeQueryService;
+    }
+
+    @Operation(summary = "내 찜 레시피 목록",
+    description = """
+            - 찜한 레시피를 최신순(찜한 시각 기준)으로 커서 페이징 조회
+            - 최초: cursorCreatedAt, cursorId 없이 요청
+            - 이후: 응답의 nextCursor 값을 그대로 QueryString으로 전달
+            - cursorCreatedAt과 cursorId는 항상 함께 전달해야 함
+            """)
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "커서 값이 올바르지 않습니다."),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @GetMapping("/me/favorites/recipes")
+    public ResponseEntity<Api<FavoriteRecipesResponse>> getFavorites(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String cursorCreatedAt,
+            @RequestParam(required = false) Long cursorId
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        FavoriteRecipesResponse result = recipeQueryService.getFavorites(userId, size, cursorCreatedAt, cursorId);
+        return ResponseEntity.ok(Api.success(result));
     }
 
     @Operation(summary = "레시피 찜 생성",
