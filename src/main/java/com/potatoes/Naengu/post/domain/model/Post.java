@@ -50,6 +50,13 @@ public class Post {
         images.add(image);
     }
 
+    public void update(String content, List<PostImage> newImages) {
+        this.content = content;
+        this.images.clear();
+        this.images.addAll(newImages);
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public Long getId() { return id; }
     public Profile getProfile() { return profile; }
     public String getContent() { return content; }
