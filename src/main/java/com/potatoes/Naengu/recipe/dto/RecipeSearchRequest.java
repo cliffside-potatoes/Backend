@@ -7,5 +7,6 @@ public record RecipeSearchRequest(
         Long cursorId,
         String sort,
         Integer cursorMatchCount,
-        Integer cursorLikeCount
+        Integer cursorLikeCount,
+        String category
 ) {}

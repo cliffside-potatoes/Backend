@@ -149,4 +149,64 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            JOIN RecipeTag rt ON rt.recipe = r
+            JOIN Tag t ON rt.tag = t
+            WHERE t.value = :category
+            ORDER BY r.createdAt DESC, r.id DESC
+            """)
+    List<Recipe> findLatestByCategory(
+            @Param("category") String category,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            JOIN RecipeTag rt ON rt.recipe = r
+            JOIN Tag t ON rt.tag = t
+            WHERE t.value = :category
+              AND (r.createdAt < :cursorCreatedAt
+                   OR (r.createdAt = :cursorCreatedAt AND r.id < :cursorId))
+            ORDER BY r.createdAt DESC, r.id DESC
+            """)
+    List<Recipe> findLatestByCategoryAfterCursor(
+            @Param("category") String category,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            JOIN RecipeTag rt ON rt.recipe = r
+            JOIN Tag t ON rt.tag = t
+            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
+            WHERE t.value = :category
+            GROUP BY r
+            ORDER BY COUNT(pfr) DESC, r.id DESC
+            """)
+    List<Recipe> findByLikeCountAndCategory(
+            @Param("category") String category,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Recipe r
+            JOIN RecipeTag rt ON rt.recipe = r
+            JOIN Tag t ON rt.tag = t
+            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
+            WHERE t.value = :category
+            GROUP BY r
+            HAVING COUNT(pfr) < :cursorLikeCount
+                OR (COUNT(pfr) = :cursorLikeCount AND r.id < :cursorId)
+            ORDER BY COUNT(pfr) DESC, r.id DESC
+            """)
+    List<Recipe> findNextByLikeCountAndCategory(
+            @Param("category") String category,
+            @Param("cursorLikeCount") int cursorLikeCount,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 }
