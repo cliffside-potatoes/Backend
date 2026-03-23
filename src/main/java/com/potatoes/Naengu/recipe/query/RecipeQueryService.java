@@ -265,6 +265,76 @@ public class RecipeQueryService {
     }
 
     @Transactional(readOnly = true)
+    public RecipeSearchResponse searchByCategoryLatest(Long userId, RecipeSearchRequest request) {
+        validateLatestCursor(request);
+
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(RecipeErrorCode.RECIPE_NOT_FOUND));
+
+        Set<Long> fridgeIngredientIds = loadFridgeIngredientIds(profile);
+
+        PageRequest pageable = PageRequest.of(0, request.size() + 1);
+        List<Recipe> recipes = (request.cursorCreatedAt() == null)
+                ? recipeRepository.findLatestByCategory(request.category(), pageable)
+                : recipeRepository.findLatestByCategoryAfterCursor(
+                        request.category(), parseCursorTime(request.cursorCreatedAt()), request.cursorId(), pageable);
+
+        boolean hasNext = recipes.size() > request.size();
+        if (hasNext) {
+            recipes = recipes.subList(0, request.size());
+        }
+
+        List<RecipeSearchItemResponse> items = recipes.stream()
+                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .toList();
+
+        CursorResponse nextCursor = null;
+        if (hasNext && !recipes.isEmpty()) {
+            Recipe last = recipes.get(recipes.size() - 1);
+            nextCursor = new CursorResponse(
+                    last.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    last.getId()
+            );
+        }
+
+        return new RecipeSearchResponse(items, hasNext, nextCursor);
+    }
+
+    @Transactional(readOnly = true)
+    public RecipeLikeResponse searchByCategoryByLikeCount(Long userId, RecipeSearchRequest request) {
+        validateLikeCountCursor(request);
+
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(RecipeErrorCode.RECIPE_NOT_FOUND));
+
+        Set<Long> fridgeIngredientIds = loadFridgeIngredientIds(profile);
+
+        PageRequest pageable = PageRequest.of(0, request.size() + 1);
+        List<Recipe> recipes = (request.cursorLikeCount() == null)
+                ? recipeRepository.findByLikeCountAndCategory(request.category(), pageable)
+                : recipeRepository.findNextByLikeCountAndCategory(
+                        request.category(), request.cursorLikeCount(), request.cursorId(), pageable);
+
+        boolean hasNext = recipes.size() > request.size();
+        if (hasNext) {
+            recipes = recipes.subList(0, request.size());
+        }
+
+        List<RecipeSearchItemResponse> items = recipes.stream()
+                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .toList();
+
+        LikeCountCursorResponse nextCursor = null;
+        if (hasNext && !recipes.isEmpty()) {
+            Recipe last = recipes.get(recipes.size() - 1);
+            int lastLikeCount = (int) profileFavoriteRecipeRepository.countByRecipe(last);
+            nextCursor = new LikeCountCursorResponse(lastLikeCount, last.getId());
+        }
+
+        return new RecipeLikeResponse(items, hasNext, nextCursor);
+    }
+
+    @Transactional(readOnly = true)
     public FavoriteRecipesResponse getFavorites(Long userId, int size, String cursorCreatedAt, Long cursorId) {
         if ((cursorCreatedAt == null) != (cursorId == null)) {
             throw new ApiException(RecipeErrorCode.INVALID_CURSOR);
@@ -337,6 +407,14 @@ public class RecipeQueryService {
                 matchedIngredientCount,
                 true
         );
+    }
+
+    private Set<Long> loadFridgeIngredientIds(Profile profile) {
+        return fridgeIngredientRepository
+                .findAllByFridgeCategory_Fridge(profile.getFridge())
+                .stream()
+                .map(fi -> fi.getIngredient().getId())
+                .collect(Collectors.toSet());
     }
 
     private LocalDateTime parseCursorTime(String cursorCreatedAt) {

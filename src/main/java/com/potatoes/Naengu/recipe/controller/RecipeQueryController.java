@@ -53,11 +53,19 @@ public class RecipeQueryController {
             @RequestParam(required = false) String cursorCreatedAt,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) Integer cursorMatchCount,
-            @RequestParam(required = false) Integer cursorLikeCount
+            @RequestParam(required = false) Integer cursorLikeCount,
+            @RequestParam(required = false) String category
     ) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort, cursorMatchCount, cursorLikeCount);
+        RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort, cursorMatchCount, cursorLikeCount, category);
         RecipeSortType sortType = RecipeSortType.from(sort);
+
+        if (category != null && !category.isBlank()) {
+            if (sortType == RecipeSortType.LIKE_COUNT) {
+                return ResponseEntity.ok(Api.success(recipeQueryService.searchByCategoryByLikeCount(userId, request)));
+            }
+            return ResponseEntity.ok(Api.success(recipeQueryService.searchByCategoryLatest(userId, request)));
+        }
 
         if (sortType == RecipeSortType.MATCH_COUNT) {
             RecipeMatchResponse response = recipeQueryService.searchByMatchCount(userId, request);
