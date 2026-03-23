@@ -8,9 +8,12 @@ import com.potatoes.Naengu.global.dto.CursorResponse;
 import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import com.potatoes.Naengu.profile.repository.ProfileRepository;
+import com.potatoes.Naengu.recipe.domain.model.ProfileFavoriteRecipe;
 import com.potatoes.Naengu.recipe.domain.model.Recipe;
 import com.potatoes.Naengu.recipe.domain.model.RecipeWithLink;
 import com.potatoes.Naengu.recipe.domain.vo.RecipeSortType;
+import com.potatoes.Naengu.recipe.dto.FavoriteRecipeItem;
+import com.potatoes.Naengu.recipe.dto.FavoriteRecipesResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeLikeResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeMatchResponse;
 import com.potatoes.Naengu.recipe.dto.RecipeSearchItemResponse;
@@ -259,6 +262,81 @@ public class RecipeQueryService {
         if (hasCursorMatchCount != hasCursorId) {
             throw new ApiException(RecipeErrorCode.INVALID_CURSOR);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public FavoriteRecipesResponse getFavorites(Long userId, int size, String cursorCreatedAt, Long cursorId) {
+        if ((cursorCreatedAt == null) != (cursorId == null)) {
+            throw new ApiException(RecipeErrorCode.INVALID_CURSOR);
+        }
+
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(RecipeErrorCode.RECIPE_NOT_FOUND));
+
+        Set<Long> fridgeIngredientIds = fridgeIngredientRepository
+                .findAllByFridgeCategory_Fridge(profile.getFridge())
+                .stream()
+                .map(fi -> fi.getIngredient().getId())
+                .collect(Collectors.toSet());
+
+        PageRequest pageable = PageRequest.of(0, size + 1);
+        List<ProfileFavoriteRecipe> favorites = (cursorCreatedAt == null)
+                ? profileFavoriteRecipeRepository.findByProfileLatest(profile, pageable)
+                : profileFavoriteRecipeRepository.findByProfileAfterCursor(
+                        profile, parseCursorTime(cursorCreatedAt), cursorId, pageable);
+
+        boolean hasNext = favorites.size() > size;
+        if (hasNext) {
+            favorites = favorites.subList(0, size);
+        }
+
+        List<FavoriteRecipeItem> items = favorites.stream()
+                .map(pfr -> toFavoriteItem(pfr.getRecipe(), fridgeIngredientIds))
+                .toList();
+
+        CursorResponse nextCursor = null;
+        if (hasNext && !favorites.isEmpty()) {
+            ProfileFavoriteRecipe last = favorites.get(favorites.size() - 1);
+            nextCursor = new CursorResponse(
+                    last.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    last.getId()
+            );
+        }
+
+        return new FavoriteRecipesResponse(items, hasNext, nextCursor);
+    }
+
+    private FavoriteRecipeItem toFavoriteItem(Recipe recipe, Set<Long> fridgeIngredientIds) {
+        String thumbnailUrl = recipe.getRecipeImage() != null
+                ? fileUploadService.getPublicUrl(recipe.getRecipeImage().getS3Key())
+                : fileUploadService.getDefaultProfileImageUrl();
+
+        String source = recipe instanceof RecipeWithLink rwl ? rwl.getUrlSource() : null;
+
+        int totalIngredientCount = recipeIngredientRepository.countByRecipe(recipe);
+
+        Set<Long> recipeIngredientIds = recipeIngredientRepository.findByRecipe(recipe).stream()
+                .map(ri -> ri.getIngredient().getId())
+                .collect(Collectors.toSet());
+        recipeIngredientIds.retainAll(fridgeIngredientIds);
+        int matchedIngredientCount = recipeIngredientIds.size();
+
+        int likeCount = (int) profileFavoriteRecipeRepository.countByRecipe(recipe);
+        int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
+
+        return new FavoriteRecipeItem(
+                recipe.getId(),
+                recipe.getTitle(),
+                thumbnailUrl,
+                source,
+                recipe.getCookingTime(),
+                recipe.getDifficulty().getDescription(),
+                likeCount,
+                reviewCount,
+                totalIngredientCount,
+                matchedIngredientCount,
+                true
+        );
     }
 
     private LocalDateTime parseCursorTime(String cursorCreatedAt) {
