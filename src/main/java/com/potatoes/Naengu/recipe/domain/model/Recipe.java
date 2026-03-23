@@ -15,15 +15,18 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DiscriminatorOptions;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "recipe_type")
+@DiscriminatorOptions(force = true)
 public abstract class Recipe {
 
     @Id
@@ -47,8 +50,11 @@ public abstract class Recipe {
     private String description;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "recipe_image_id", nullable = false)
+    @JoinColumn(name = "recipe_image_id", nullable = true)
     private RecipeImage recipeImage;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
 
     protected final void initBase(
@@ -66,6 +72,7 @@ public abstract class Recipe {
         this.cookingTime = cookingTime;
         this.description = description.trim();
         this.recipeImage = recipeImage;
+        this.createdAt = LocalDateTime.now();
     }
 
     private void validateBase(

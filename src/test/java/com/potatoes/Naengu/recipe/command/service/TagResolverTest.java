@@ -1,14 +1,15 @@
 package com.potatoes.Naengu.recipe.command.service;
 
 
-import static com.potatoes.Naengu.ingredients.shared.exception.SystemErrorCode.DATABASE_INCONSISTENCY;
-import static com.potatoes.Naengu.recipe.command.exception.RecipeTagErrorCode.TAG_NOT_FOUND;
+import static com.potatoes.Naengu.global.exception.SystemErrorCode.DATABASE_INCONSISTENCY;
+import static com.potatoes.Naengu.recipe.exception.RecipeTagErrorCode.TAG_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.potatoes.Naengu.ingredients.shared.exception.ApiException;
+import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.recipe.domain.model.Tag;
 import com.potatoes.Naengu.recipe.repository.TagRepository;
+import com.potatoes.Naengu.recipe.service.TagResolver;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

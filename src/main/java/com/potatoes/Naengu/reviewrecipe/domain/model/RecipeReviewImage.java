@@ -1,5 +1,6 @@
 package com.potatoes.Naengu.reviewrecipe.domain.model;
 
+import com.potatoes.Naengu.profile.dto.ProfileImageRequest;
 import com.potatoes.Naengu.reviewrecipe.dto.RecipeReviewImageRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
