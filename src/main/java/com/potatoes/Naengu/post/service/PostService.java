@@ -68,4 +68,19 @@ public class PostService {
 
         return new PostUpdateResponse(post.getId());
     }
+
+    @Transactional
+    public void deletePost(Long userId, Long postId) {
+        Profile profile = profileRepository.findByUserEntityProviderId(userId)
+                .orElseThrow(() -> new ApiException(PostErrorCode.PROFILE_NOT_FOUND));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ApiException(PostErrorCode.POST_NOT_FOUND));
+
+        if (!post.getProfile().getId().equals(profile.getId())) {
+            throw new ApiException(PostErrorCode.FORBIDDEN);
+        }
+
+        postRepository.delete(post);
+    }
 }

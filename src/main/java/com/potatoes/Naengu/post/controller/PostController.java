@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,5 +64,22 @@ public class PostController {
         Long userId = Long.parseLong(userDetails.getUsername());
         PostUpdateResponse result = postService.updatePost(userId, postId, req);
         return ResponseEntity.ok(Api.success(result));
+    }
+
+    @Operation(summary = "게시글 삭제", description = "본인 게시글을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "본인 게시글이 아님"),
+            @ApiResponse(responseCode = "404", description = "게시글 없음")
+    })
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<Api<Void>> delete(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long postId
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        postService.deletePost(userId, postId);
+        return ResponseEntity.ok(Api.success());
     }
 }
