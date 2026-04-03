@@ -2,6 +2,7 @@ package com.potatoes.Naengu.post.domain.model;
 
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import jakarta.persistence.*;
+import lombok.Getter;
 import org.hibernate.annotations.SoftDelete;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "post")
 @SoftDelete
 public class Post {
@@ -37,6 +39,9 @@ public class Post {
     @Column(nullable = false)
     private boolean hideLikeCount = false;
 
+    @Column(nullable = false)
+    private int likeCount = 0;
+
     protected Post() {}
 
     public Post(Profile profile, String content) {
@@ -50,6 +55,10 @@ public class Post {
         images.add(image);
     }
 
+    public void plusLikeCount() {
+        likeCount++;
+    }
+
     public void update(String content, List<PostImage> newImages) {
         this.content = content;
         this.images.clear();
@@ -57,11 +66,5 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
-    public Profile getProfile() { return profile; }
-    public String getContent() { return content; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public List<PostImage> getImages() { return images; }
     public boolean isHideLikeCount() { return hideLikeCount; }
 }
