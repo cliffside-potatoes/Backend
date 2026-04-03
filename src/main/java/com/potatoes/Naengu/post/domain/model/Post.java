@@ -59,6 +59,12 @@ public class Post {
         likeCount++;
     }
 
+    public void minusLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
     public void update(String content, List<PostImage> newImages) {
         this.content = content;
         this.images.clear();
