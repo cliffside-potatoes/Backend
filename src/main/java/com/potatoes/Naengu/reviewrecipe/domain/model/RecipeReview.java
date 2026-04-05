@@ -23,7 +23,11 @@ import lombok.NoArgsConstructor;
 @Table(
         indexes = {
                 @Index(name = "idx_recipe_review_recipe_updated_id",
-                        columnList = "recipe_id,updated_at,id")
+                        columnList = "recipe_id,updated_at,id"),
+                @Index(
+                        name = "idx_recipe_review_recipe_like_updated_id",
+                        columnList = "recipe_id,like_count,updated_at,id"
+                )
         },
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_recipe_review_profile_recipe",

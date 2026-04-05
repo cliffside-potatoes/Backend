@@ -88,10 +88,11 @@ public class RecipeReviewController {
 
     @Operation(summary = "레시피 리뷰 조회",
     description = """
-            - Query String : size, sort, cursorUpdatedAt, cursorId
+            - Query String : size, sort, cursorLikeCount, cursorUpdatedAt, cursorId
             - 최초 진입은 커서 없이 요청
-            - default size = 20 , default sort = LATEST (최신순)
-            - 현재는 최신순만 구현되어 있음.
+            - default size = 20 , default sort = LATEST
+            - sort = LATEST : cursorUpdatedAt, cursorId 사용
+            - sort = LIKE : cursorLikeCount, cursorUpdatedAt, cursorId 사용
             """)
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "레시피 리뷰글 조회 성공"),

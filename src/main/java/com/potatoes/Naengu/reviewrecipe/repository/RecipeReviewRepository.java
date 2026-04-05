@@ -33,4 +33,25 @@ public interface RecipeReviewRepository extends JpaRepository<RecipeReview, Long
             Pageable pageable
     );
 
+    List<RecipeReview> findByRecipeIdOrderByLikeCountDescUpdatedAtDescIdDesc(Long recipeId, Pageable pageable);
+
+    @Query("""
+        select rr
+        from RecipeReview rr
+        where rr.recipe.id = :recipeId
+          and (
+                rr.likeCount < :cursorLikeCount
+                or (rr.likeCount = :cursorLikeCount and rr.updatedAt < :cursorUpdatedAt)
+                or (rr.likeCount = :cursorLikeCount and rr.updatedAt = :cursorUpdatedAt and rr.id < :cursorId)
+          )
+        order by rr.likeCount desc, rr.updatedAt desc, rr.id desc
+        """)
+    List<RecipeReview> findLikeNextPage(
+            @Param("recipeId") Long recipeId,
+            @Param("cursorLikeCount") Integer cursorLikeCount,
+            @Param("cursorUpdatedAt") LocalDateTime cursorUpdatedAt,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
 }

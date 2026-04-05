@@ -77,6 +77,9 @@ public class RecipeReviewQueryService {
         if (sort == ReviewSortType.LATEST) {
             return loadLatestReviews(size, recipeId, cursor);
         }
+        if (sort == ReviewSortType.LIKE) {
+            return loadLikeReviews(size, recipeId, cursor);
+        }
         throw new IllegalArgumentException("지원하지 않는 정렬 방식입니다.");
     }
 
@@ -89,6 +92,23 @@ public class RecipeReviewQueryService {
 
         return recipeReviewRepository.findLatestNextPage(recipeId, cursor.updatedAt(), cursor.id(), pageable);
     }
+
+    private List<RecipeReview> loadLikeReviews(int size, Long recipeId, RecipeReviewCursor cursor) {
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        if (cursor.isFirstPage()) {
+            return recipeReviewRepository.findByRecipeIdOrderByLikeCountDescUpdatedAtDescIdDesc(recipeId, pageable);
+        }
+
+        return recipeReviewRepository.findLikeNextPage(
+                recipeId,
+                cursor.likeCount(),
+                cursor.updatedAt(),
+                cursor.id(),
+                pageable
+        );
+    }
+
 
     private List<RecipeReview> sliceCount(List<RecipeReview> reviews, int size) {
         if (reviews.size() <= size) {
