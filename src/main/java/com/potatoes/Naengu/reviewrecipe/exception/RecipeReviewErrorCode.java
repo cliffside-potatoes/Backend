@@ -18,7 +18,11 @@ public enum RecipeReviewErrorCode implements ErrorCode {
             "INVALID_CURSOR",
             "잘못된 cursor 입니다.",
             HttpStatus.BAD_REQUEST
-    );
+    ),
+    RECIPE_REVIEW_NOT_FOUND(
+            "RECIPE_REVIEW_NOT_FOUND",
+            "게시글을 찾을 수 없습니다.",
+            HttpStatus.NOT_FOUND);
 
 
     private final String code;
