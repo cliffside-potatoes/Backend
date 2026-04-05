@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,6 +41,23 @@ public class RecipeReviewLikeController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(Api.success());
+    }
+
+    @Operation(summary = "레시피 리뷰글 좋아요 해제",
+            description = """
+            - 리뷰글 좋아요 해제 API,
+            - 좋아요 되어 있으면 해제, 좋아요 수 감소
+            - 좋아요 안된 상태여도 멱등하게 성공 처리
+            """)
+    @DeleteMapping("/reviewRecipes/{recipeReviewId}/likes")
+    public ResponseEntity<Api<Void>> delete(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long recipeReviewId
+    ) {
+        long userId = Long.parseLong(userDetails.getUsername());
+        recipeReviewLikeService.deleteLike(userId, recipeReviewId);
+
+        return ResponseEntity.ok(Api.success());
     }
 
 }

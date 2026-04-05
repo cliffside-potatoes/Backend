@@ -44,6 +44,19 @@ public class RecipeReviewLikeService {
         } catch (DataIntegrityViolationException e) {}
     }
 
+    @Transactional
+    public void deleteLike(Long userId, Long recipeReviewId) {
+        Profile profile = loadProfile(userId);
+        RecipeReview recipeReview = loadRecipeReview(recipeReviewId);
+
+        profileLikeReviewRepository
+                .findByProfileAndRecipeReview(profile,recipeReview)
+                .ifPresent(profileLikeReview -> {
+                    profileLikeReviewRepository.delete(profileLikeReview);
+                    recipeReview.minusLikeCount();
+                });
+    }
+
     private Profile loadProfile(long userId) {
         return profileRepository.findByUserEntityProviderId(userId)
                 .orElseThrow(() -> new ApiException(ProfileErrorCode.PROFILE_NOT_FOUND));
