@@ -26,7 +26,7 @@ public class CreateCategoryRequest {
     @Size(min = 1, max = 20)
     private String name;
 
-    @Schema(example = "GREEN")
+    @Schema(example = "COLOR_1")
     @NotNull
     private CategoryColor color;
 
