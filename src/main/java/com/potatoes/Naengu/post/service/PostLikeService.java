@@ -45,6 +45,22 @@ public class PostLikeService {
         } catch (DataIntegrityViolationException e) {}
     }
 
+    @Transactional
+    public void deleteLike(long userId, Long postId) {
+        Profile profile = loadProfile(userId);
+        Post post = loadPost(postId);
+
+        profileLikePostRepository
+                .findByProfileAndPost(profile, post)
+                .ifPresent(profileLikePost -> {
+                    profileLikePostRepository.delete(profileLikePost);
+                    post.minusLikeCount();
+                });
+
+    }
+
+
+
     private Profile loadProfile(long userId) {
         return profileRepository.findByUserEntityProviderId(userId)
                 .orElseThrow(() -> new ApiException(ProfileErrorCode.PROFILE_NOT_FOUND));
