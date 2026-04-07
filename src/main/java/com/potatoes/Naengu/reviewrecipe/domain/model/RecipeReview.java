@@ -81,4 +81,10 @@ public class RecipeReview {
         likeCount++;
     }
 
+    public void minusLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
 }
