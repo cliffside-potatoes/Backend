@@ -77,4 +77,8 @@ public class RecipeReview {
         return new RecipeReview(profile, recipe, content);
     }
 
+    public void plusLikeCount() {
+        likeCount++;
+    }
+
 }
