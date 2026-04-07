@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.post.domain.model;
 
 import com.potatoes.Naengu.profile.domain.model.Profile;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,10 +41,14 @@ public class ProfileLikePost {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
     private ProfileLikePost(Profile profile, Post post) {
         validate(profile, post);
         this.profile = profile;
         this.post = post;
+        this.createdAt = LocalDateTime.now();
     }
 
     public static ProfileLikePost create(Profile profile, Post post) {
