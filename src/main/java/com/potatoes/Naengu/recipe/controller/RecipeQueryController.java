@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,9 +57,18 @@ public class RecipeQueryController {
             @RequestParam(required = false) Integer cursorLikeCount,
             @RequestParam(required = false) String category
     ) {
-        Long userId = Long.parseLong(userDetails.getUsername());
         RecipeSearchRequest request = new RecipeSearchRequest(size, keyword, cursorCreatedAt, cursorId, sort, cursorMatchCount, cursorLikeCount, category);
         RecipeSortType sortType = RecipeSortType.from(sort);
+
+        if (userDetails == null) {
+            if (sortType != RecipeSortType.LIKE_COUNT) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Api.error("UNAUTHORIZED", "인증이 필요합니다."));
+            }
+            return ResponseEntity.ok(Api.success(recipeQueryService.searchByLikeCountAnonymous(request)));
+        }
+
+        Long userId = Long.parseLong(userDetails.getUsername());
 
         if (category != null && !category.isBlank()) {
             if (sortType == RecipeSortType.LIKE_COUNT) {

@@ -26,17 +26,15 @@ public record GetReviewFeedRequest(
         @DateTimeFormat(iso = ISO.DATE_TIME)
         LocalDateTime cursorUpdatedAt,
 
-        Long cursorId
+        Long cursorId,
+
+        Integer cursorLikeCount
 ) {
 
     private static final int DEFAULT_SIZE = 20;
-    private static final int MAX_SIZE = 100;
 
     public int normalizedSize() {
-        if (size == null || size < 1) {
-            return DEFAULT_SIZE;
-        }
-        return Math.min(size, MAX_SIZE);
+        return size == null ? DEFAULT_SIZE : size;
     }
 
     public ReviewSortType normalizedSort() {
@@ -47,6 +45,6 @@ public record GetReviewFeedRequest(
     }
 
     public RecipeReviewCursor toCursor() {
-        return new RecipeReviewCursor(cursorUpdatedAt, cursorId);
+        return new RecipeReviewCursor(cursorLikeCount, cursorUpdatedAt, cursorId);
     }
 }

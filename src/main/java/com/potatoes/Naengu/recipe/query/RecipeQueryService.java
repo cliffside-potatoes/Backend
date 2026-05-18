@@ -157,6 +157,58 @@ public class RecipeQueryService {
         return new RecipeLikeResponse(items, hasNext, nextCursor);
     }
 
+    @Transactional(readOnly = true)
+    public RecipeLikeResponse searchByLikeCountAnonymous(RecipeSearchRequest request) {
+        validateLikeCountCursor(request);
+
+        List<Recipe> recipes = fetchLikeCountRecipes(request);
+
+        boolean hasNext = recipes.size() > request.size();
+        if (hasNext) {
+            recipes = recipes.subList(0, request.size());
+        }
+
+        List<RecipeSearchItemResponse> items = recipes.stream()
+                .map(this::toItemResponseAnonymous)
+                .toList();
+
+        LikeCountCursorResponse nextCursor = null;
+        if (hasNext && !recipes.isEmpty()) {
+            Recipe last = recipes.get(recipes.size() - 1);
+            int lastLikeCount = (int) profileFavoriteRecipeRepository.countByRecipe(last);
+            nextCursor = new LikeCountCursorResponse(lastLikeCount, last.getId());
+        }
+
+        return new RecipeLikeResponse(items, hasNext, nextCursor);
+    }
+
+    private RecipeSearchItemResponse toItemResponseAnonymous(Recipe recipe) {
+        String thumbnailUrl = recipe.getRecipeImage() != null
+                ? fileUploadService.getPublicUrl(recipe.getRecipeImage().getS3Key())
+                : fileUploadService.getDefaultProfileImageUrl();
+
+        String source = recipe instanceof RecipeWithLink rwl ? rwl.getUrlSource() : null;
+
+        int totalIngredientCount = recipeIngredientRepository.countByRecipe(recipe);
+        int likeCount = (int) profileFavoriteRecipeRepository.countByRecipe(recipe);
+        int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
+
+        return new RecipeSearchItemResponse(
+                recipe.getId(),
+                recipe.getTitle(),
+                thumbnailUrl,
+                source,
+                recipe.getCookingTime(),
+                recipe.getServings(),
+                recipe.getDifficulty().getDescription(),
+                likeCount,
+                reviewCount,
+                totalIngredientCount,
+                0,      // matchedIngredientCount: 비인증이므로 냉장고 매칭 불가
+                false   // liked: 비인증이므로 찜 여부 알 수 없음
+        );
+    }
+
     private List<Recipe> fetchLikeCountRecipes(RecipeSearchRequest request) {
         PageRequest pageable = PageRequest.of(0, request.size() + 1);
         boolean hasKeyword = request.keyword() != null && !request.keyword().isBlank();

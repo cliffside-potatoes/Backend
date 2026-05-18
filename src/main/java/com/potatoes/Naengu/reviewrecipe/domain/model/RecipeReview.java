@@ -23,7 +23,11 @@ import lombok.NoArgsConstructor;
 @Table(
         indexes = {
                 @Index(name = "idx_recipe_review_recipe_updated_id",
-                        columnList = "recipe_id,updated_at,id")
+                        columnList = "recipe_id,updated_at,id"),
+                @Index(
+                        name = "idx_recipe_review_recipe_like_updated_id",
+                        columnList = "recipe_id,like_count,updated_at,id"
+                )
         },
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_recipe_review_profile_recipe",
@@ -75,6 +79,16 @@ public class RecipeReview {
 
     public static RecipeReview create(Profile profile, Recipe recipe, String content) {
         return new RecipeReview(profile, recipe, content);
+    }
+
+    public void plusLikeCount() {
+        likeCount++;
+    }
+
+    public void minusLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 
 }
