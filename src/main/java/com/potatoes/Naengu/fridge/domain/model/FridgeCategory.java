@@ -51,7 +51,7 @@ public class FridgeCategory {
     private StorageType storageType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "color", nullable = false)
+    @Column(name = "color", nullable = false, length = 10)
     private CategoryColor color;
 
     private FridgeCategory(
