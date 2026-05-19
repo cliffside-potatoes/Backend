@@ -19,7 +19,7 @@
 | **프로필** | 프로필 조회 · 수정 (닉네임, 소개, 프로필 이미지) |
 | **인증** | Kakao OAuth 2.0 로그인, JWT 기반 인증 |
 
-## 팀원
+## 백엔드 팀원
 
 | 이름 | 역할 | GitHub |
 |---|---|---|
@@ -28,21 +28,29 @@
 
 ## 화면 소개
 
-| 냉장고 재료 관리 | 재료 추천 |
-|---|---|
-| ![냉장고 재료 관리](docs/images/screen-fridge.png) | ![재료 추천](docs/images/screen-ingredient-suggestion.png) |
+⚠️ 레시피 데이터는 외부 Open API 기반이며, API에서 사진을 제공하지 않아 목업 데이터 외의 레시피는 기본 이미지로 표시됩니다.
 
-| 레시피 조회 | 레시피 상세 |
-|---|---|
-| ![레시피 조회](docs/images/screen-recipe-list.png) | ![레시피 상세](docs/images/screen-recipe-detail.png) |
+| 전체 화면 로직 (gif)                                 | 홈화면                                           |
+|------------------------------------------------|-----------------------------------------------| 
+| <img src="docs/gif/냉구시현영상1.gif" width="300" /> | <img src="docs/images/홈화면.jpg" width="300" /> |
 
-| 피드 | 게시글 작성 |
-|---|---|
-| ![피드](docs/images/screen-feed.png) | ![게시글 작성](docs/images/screen-post-create.png) |
 
-| 프로필 | 레시피 후기 |
-|---|---|
-| ![프로필](docs/images/screen-profile.png) | ![레시피 후기](docs/images/screen-recipe-review.png) |
+
+| 내 냉장고 로직 (gif)                      | 냉장고 재료 관리                                           | 재료 추천                                            |
+|-------------------------------------|-----------------------------------------------------|--------------------------------------------------|
+| <img src="docs/gif/내_냉장고_로직.gif" width="300" /> | <img src="docs/images/냉장고_재료_관리.jpg" width="300" /> | <img src="docs/images/검색어_추천.jpg" width="300" /> |
+
+| 레시피 조회                                          | 레시피 상세 |
+|-------------------------------------------------|---|
+|  | ![레시피 상세](docs/images/screen-recipe-detail.png) |
+
+| 피드                                           | 게시글 작성(gif)                                      |
+|----------------------------------------------|--------------------------------------------------|
+| <img src="docs/images/피드.jpg" width="300" /> | <img src="docs/gif/피드_게시글_작성.gif" width="300" /> |
+
+| 프로필 (gif)                                  | 레시피 후기 |
+|--------------------------------------------|---|
+| <img src="docs/gif/프로필.gif" width="300" /> | ![레시피 후기](docs/images/screen-recipe-review.png) |
 
 
 ## 기술 스택
