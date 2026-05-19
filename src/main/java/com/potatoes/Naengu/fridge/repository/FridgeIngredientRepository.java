@@ -23,6 +23,10 @@ public interface FridgeIngredientRepository extends JpaRepository<FridgeIngredie
     List<FridgeIngredient> findAllByFridgeCategory_Fridge(Fridge fridge);
 
     @Modifying(clearAutomatically = true)
+    @Query(value = "DELETE FROM fridge_ingredient WHERE fridge_category_id = :categoryId", nativeQuery = true)
+    void hardDeleteByCategoryId(@Param("categoryId") Long categoryId);
+
+    @Modifying(clearAutomatically = true)
     @Query(value = """
             DELETE FROM fridge_ingredient
             WHERE fridge_category_id IN (

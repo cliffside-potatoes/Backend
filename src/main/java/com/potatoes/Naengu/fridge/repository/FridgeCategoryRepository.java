@@ -45,6 +45,10 @@ public interface FridgeCategoryRepository extends JpaRepository<FridgeCategory, 
     List<FridgeCategory> findAllByFridge(Fridge fridge);
 
     @Modifying(clearAutomatically = true)
+    @Query(value = "DELETE FROM fridge_category WHERE id = :id", nativeQuery = true)
+    void hardDeleteById(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true)
     @Query(value = """
             DELETE FROM fridge_category
             WHERE fridge_id IN (

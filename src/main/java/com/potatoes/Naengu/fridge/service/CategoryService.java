@@ -8,6 +8,7 @@ import com.potatoes.Naengu.fridge.dto.CreateCategoryCommand;
 import com.potatoes.Naengu.fridge.dto.UpdateCategoryCommand;
 import com.potatoes.Naengu.fridge.dto.UpdateCategoryOrderRequest;
 import com.potatoes.Naengu.fridge.repository.FridgeCategoryRepository;
+import com.potatoes.Naengu.fridge.repository.FridgeIngredientRepository;
 import com.potatoes.Naengu.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.fridge.domain.model.FridgeCategory;
 import com.potatoes.Naengu.fridge.domain.vo.CategoryColor;
@@ -30,12 +31,15 @@ public class CategoryService {
     private final FridgeRepository fridgeRepository;
     private final ProfileRepository profileRepository;
     private final FridgeCategoryRepository fridgeCategoryRepository;
+    private final FridgeIngredientRepository fridgeIngredientRepository;
 
     public CategoryService(FridgeRepository fridgeRepository, ProfileRepository profileRepository,
-                           FridgeCategoryRepository fridgeCategoryRepository) {
+                           FridgeCategoryRepository fridgeCategoryRepository,
+                           FridgeIngredientRepository fridgeIngredientRepository) {
         this.fridgeRepository = fridgeRepository;
         this.profileRepository = profileRepository;
         this.fridgeCategoryRepository = fridgeCategoryRepository;
+        this.fridgeIngredientRepository = fridgeIngredientRepository;
     }
 
     @Transactional
@@ -85,7 +89,8 @@ public class CategoryService {
         FridgeCategory category = loadCategory(categoryId);
         ensureOwnedByFridge(fridge, category);
 
-        fridgeCategoryRepository.delete(category);
+        fridgeIngredientRepository.hardDeleteByCategoryId(categoryId);
+        fridgeCategoryRepository.hardDeleteById(categoryId);
     }
 
     @Transactional
