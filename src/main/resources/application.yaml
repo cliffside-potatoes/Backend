@@ -57,3 +57,12 @@ cloud:
 app:
   frontend-url: ${REDIRECT_FRONT_URL}
   server-url: ${APP_SERVER_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    tags:
+      application: naengu

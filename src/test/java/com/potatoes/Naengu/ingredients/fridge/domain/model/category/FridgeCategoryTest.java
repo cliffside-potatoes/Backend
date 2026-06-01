@@ -19,7 +19,7 @@ class FridgeCategoryTest {
         String name = "고기";
         int orderIndex = 3;
         StorageType storageType = StorageType.REFRIGERATED;
-        CategoryColor color = CategoryColor.RED;
+        CategoryColor color = CategoryColor.COLOR_1;
 
         FridgeCategory category = FridgeCategory.create(fridge, name, orderIndex, storageType, color);
 
