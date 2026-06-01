@@ -77,7 +77,7 @@ class RecipeReviewQueryServiceTest {
         // given
         given(recipeRepository.existsById(RECIPE_ID)).willReturn(false);
 
-        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null);
+        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null, null);
 
         // when & then
         assertThatThrownBy(() ->
@@ -97,7 +97,7 @@ class RecipeReviewQueryServiceTest {
         given(recipeRepository.existsById(RECIPE_ID)).willReturn(true);
         given(profileRepository.findByUserEntityProviderId(PROVIDER_ID)).willReturn(Optional.empty());
 
-        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null);
+        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null, null);
 
         // when & then
         assertThatThrownBy(() ->
@@ -121,7 +121,7 @@ class RecipeReviewQueryServiceTest {
                 .willReturn(List.of());
         given(recipeReviewRepository.countByRecipeId(RECIPE_ID)).willReturn(0L);
 
-        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null);
+        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null, null);
 
         // when
         RecipeReviewFeedResponse response = service.getFeed(PROVIDER_ID, 20, RECIPE_ID, ReviewSortType.LATEST, cursor);
@@ -153,7 +153,7 @@ class RecipeReviewQueryServiceTest {
         given(fileUploadService.getPublicUrl("review/img.jpg")).willReturn("https://test.com/review/img.jpg");
         given(fileUploadService.getDefaultProfileImageUrl()).willReturn("https://test.com/default.jpg");
 
-        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null);
+        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null, null);
 
         // when
         RecipeReviewFeedResponse response = service.getFeed(PROVIDER_ID, 20, RECIPE_ID, ReviewSortType.LATEST, cursor);
@@ -194,7 +194,7 @@ class RecipeReviewQueryServiceTest {
         given(recipeReviewImageRepository.findAllByRecipeReviewId(anyLong())).willReturn(List.of());
         given(fileUploadService.getDefaultProfileImageUrl()).willReturn("https://test.com/default.jpg");
 
-        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null);
+        RecipeReviewCursor cursor = new RecipeReviewCursor(null, null, null);
 
         // when
         RecipeReviewFeedResponse response = service.getFeed(PROVIDER_ID, requestSize, RECIPE_ID, ReviewSortType.LATEST, cursor);

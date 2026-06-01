@@ -53,7 +53,7 @@ class CategoryCommandServiceDataJpaTest {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 StorageType.REFRIGERATED,
                 "고기",
-                CategoryColor.RED
+                CategoryColor.COLOR_1
         );
 
         Long savedId = service.create(fridge, command);
@@ -64,7 +64,7 @@ class CategoryCommandServiceDataJpaTest {
         assertThat(saved.getStorageType()).isEqualTo(StorageType.REFRIGERATED);
         assertThat(saved.getName()).isEqualTo("고기");
         assertThat(saved.getOrderIndex()).isEqualTo(1);
-        assertThat(saved.getColor()).isEqualTo(CategoryColor.RED);
+        assertThat(saved.getColor()).isEqualTo(CategoryColor.COLOR_1);
     }
 
     @Test
@@ -75,7 +75,7 @@ class CategoryCommandServiceDataJpaTest {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 StorageType.FROZEN,
                 "만두",
-                CategoryColor.BLUE
+                CategoryColor.COLOR_2
         );
 
         service.create(fridge, command);
@@ -100,7 +100,7 @@ class CategoryCommandServiceDataJpaTest {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 StorageType.REFRIGERATED,
                 "고기",
-                CategoryColor.RED
+                CategoryColor.COLOR_1
         );
 
         Long id1 = service.create(fridge1, command);
@@ -117,13 +117,13 @@ class CategoryCommandServiceDataJpaTest {
         Fridge fridge = savedFridge();
 
         Long r1 = service.create(fridge, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "채소", CategoryColor.GREEN
+                StorageType.REFRIGERATED, "채소", CategoryColor.COLOR_3
         ));
         Long r2 = service.create(fridge, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "유제품", CategoryColor.RED
+                StorageType.REFRIGERATED, "유제품", CategoryColor.COLOR_1
         ));
         Long f1 = service.create(fridge, new CreateCategoryCommand(
-                StorageType.FROZEN, "아이스크림", CategoryColor.BLUE
+                StorageType.FROZEN, "아이스크림", CategoryColor.COLOR_2
         ));
 
         assertThat(repository.findById(r1).orElseThrow().getOrderIndex()).isEqualTo(1);
@@ -138,13 +138,13 @@ class CategoryCommandServiceDataJpaTest {
         Long categoryId = service.create(fridge, new CreateCategoryCommand(
                 StorageType.REFRIGERATED,
                 "고기",
-                CategoryColor.RED));
+                CategoryColor.COLOR_1));
 
         UpdateCategoryCommand command = new UpdateCategoryCommand(
                 categoryId,
                 StorageType.FROZEN,
                 "육류",
-                CategoryColor.BLUE
+                CategoryColor.COLOR_2
         );
 
         Long updatedId = service.update(fridge, command);
@@ -154,7 +154,7 @@ class CategoryCommandServiceDataJpaTest {
         assertThat(updated.getFridge().getId()).isEqualTo(fridge.getId());
         assertThat(updated.getStorageType()).isEqualTo(StorageType.FROZEN);
         assertThat(updated.getName()).isEqualTo("육류");
-        assertThat(updated.getColor()).isEqualTo(CategoryColor.BLUE);
+        assertThat(updated.getColor()).isEqualTo(CategoryColor.COLOR_2);
     }
 
     @Test
@@ -165,7 +165,7 @@ class CategoryCommandServiceDataJpaTest {
         Long categoryId = service.create(fridge, new CreateCategoryCommand(
                 StorageType.REFRIGERATED,
                 "고기",
-                CategoryColor.RED));
+                CategoryColor.COLOR_1));
 
         UpdateCategoryCommand command = new UpdateCategoryCommand(
                 categoryId,
@@ -194,7 +194,7 @@ class CategoryCommandServiceDataJpaTest {
                 9999L,
                 StorageType.FROZEN,
                 "육류",
-                CategoryColor.BLUE
+                CategoryColor.COLOR_2
         );
 
         assertThatThrownBy(() -> service.update(fridge, command))
@@ -215,14 +215,14 @@ class CategoryCommandServiceDataJpaTest {
         Fridge other = savedFridge();
 
         Long categoryId = service.create(owner, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "고기", CategoryColor.RED
+                StorageType.REFRIGERATED, "고기", CategoryColor.COLOR_1
         ));
 
         UpdateCategoryCommand command = new UpdateCategoryCommand(
                 categoryId,
                 StorageType.FROZEN,
                 "육류",
-                CategoryColor.BLUE
+                CategoryColor.COLOR_2
         );
 
         assertThatThrownBy(() -> service.update(other, command))
@@ -242,18 +242,18 @@ class CategoryCommandServiceDataJpaTest {
         Fridge fridge = savedFridge();
 
         Long id1 = service.create(fridge, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "고기", CategoryColor.RED
+                StorageType.REFRIGERATED, "고기", CategoryColor.COLOR_1
         ));
 
         Long id2 = service.create(fridge, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "채소", CategoryColor.GREEN
+                StorageType.REFRIGERATED, "채소", CategoryColor.COLOR_3
         ));
 
         UpdateCategoryCommand command = new UpdateCategoryCommand(
                 id2,
                 StorageType.REFRIGERATED,
                 "고기",
-                CategoryColor.RED
+                CategoryColor.COLOR_1
         );
 
         assertThatThrownBy(() -> service.update(fridge, command))
@@ -273,7 +273,7 @@ class CategoryCommandServiceDataJpaTest {
         Fridge fridge = savedFridge();
 
         Long categoryId = service.create(fridge, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "고기", CategoryColor.RED
+                StorageType.REFRIGERATED, "고기", CategoryColor.COLOR_1
         ));
 
         UpdateCategoryCommand command = new UpdateCategoryCommand(
@@ -317,7 +317,7 @@ class CategoryCommandServiceDataJpaTest {
         Fridge other = savedFridge();
 
         Long categoryId = service.create(owner, new CreateCategoryCommand(
-                StorageType.REFRIGERATED, "고기", CategoryColor.RED
+                StorageType.REFRIGERATED, "고기", CategoryColor.COLOR_1
         ));
 
         assertThatThrownBy(() -> service.delete(other, categoryId))

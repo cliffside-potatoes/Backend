@@ -65,7 +65,7 @@ class UserHardDeleteServiceDataJpaTest {
 
     private FridgeCategory savedCategory(Fridge fridge) {
         return fridgeCategoryRepository.save(
-                FridgeCategory.create(fridge, "고기", 1, StorageType.REFRIGERATED, CategoryColor.RED)
+                FridgeCategory.create(fridge, "고기", 1, StorageType.REFRIGERATED, CategoryColor.COLOR_1)
         );
     }
 
