@@ -102,18 +102,14 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     @Query("""
             SELECT r FROM Recipe r
-            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
-            GROUP BY r
-            ORDER BY COUNT(pfr) DESC, r.id DESC
+            ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findTopByLikeCount(Pageable pageable);
 
     @Query("""
             SELECT r FROM Recipe r
-            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
             WHERE r.title LIKE %:keyword%
-            GROUP BY r
-            ORDER BY COUNT(pfr) DESC, r.id DESC
+            ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findTopByLikeCountWithKeyword(
             @Param("keyword") String keyword,
@@ -122,11 +118,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     @Query("""
             SELECT r FROM Recipe r
-            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
-            GROUP BY r
-            HAVING COUNT(pfr) < :cursorLikeCount
-                OR (COUNT(pfr) = :cursorLikeCount AND r.id < :cursorId)
-            ORDER BY COUNT(pfr) DESC, r.id DESC
+            WHERE r.likeCount < :cursorLikeCount
+                OR (r.likeCount = :cursorLikeCount AND r.id < :cursorId)
+            ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findNextByLikeCount(
             @Param("cursorLikeCount") int cursorLikeCount,
@@ -136,12 +130,10 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     @Query("""
             SELECT r FROM Recipe r
-            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
             WHERE r.title LIKE %:keyword%
-            GROUP BY r
-            HAVING COUNT(pfr) < :cursorLikeCount
-                OR (COUNT(pfr) = :cursorLikeCount AND r.id < :cursorId)
-            ORDER BY COUNT(pfr) DESC, r.id DESC
+              AND (r.likeCount < :cursorLikeCount
+                OR (r.likeCount = :cursorLikeCount AND r.id < :cursorId))
+            ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findNextByLikeCountWithKeyword(
             @Param("keyword") String keyword,
@@ -182,10 +174,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             SELECT r FROM Recipe r
             JOIN RecipeTag rt ON rt.recipe = r
             JOIN Tag t ON rt.tag = t
-            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
             WHERE t.value = :category
-            GROUP BY r
-            ORDER BY COUNT(pfr) DESC, r.id DESC
+            ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findByLikeCountAndCategory(
             @Param("category") String category,
@@ -196,12 +186,10 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             SELECT r FROM Recipe r
             JOIN RecipeTag rt ON rt.recipe = r
             JOIN Tag t ON rt.tag = t
-            LEFT JOIN ProfileFavoriteRecipe pfr ON pfr.recipe = r
             WHERE t.value = :category
-            GROUP BY r
-            HAVING COUNT(pfr) < :cursorLikeCount
-                OR (COUNT(pfr) = :cursorLikeCount AND r.id < :cursorId)
-            ORDER BY COUNT(pfr) DESC, r.id DESC
+              AND (r.likeCount < :cursorLikeCount
+                OR (r.likeCount = :cursorLikeCount AND r.id < :cursorId))
+            ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findNextByLikeCountAndCategory(
             @Param("category") String category,
