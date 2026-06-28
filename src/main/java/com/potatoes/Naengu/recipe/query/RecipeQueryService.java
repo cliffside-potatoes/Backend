@@ -150,8 +150,7 @@ public class RecipeQueryService {
         LikeCountCursorResponse nextCursor = null;
         if (hasNext && !recipes.isEmpty()) {
             Recipe last = recipes.get(recipes.size() - 1);
-            int lastLikeCount = (int) profileFavoriteRecipeRepository.countByRecipe(last);
-            nextCursor = new LikeCountCursorResponse(lastLikeCount, last.getId());
+            nextCursor = new LikeCountCursorResponse(last.getLikeCount(), last.getId());
         }
 
         return new RecipeLikeResponse(items, hasNext, nextCursor);
@@ -175,8 +174,7 @@ public class RecipeQueryService {
         LikeCountCursorResponse nextCursor = null;
         if (hasNext && !recipes.isEmpty()) {
             Recipe last = recipes.get(recipes.size() - 1);
-            int lastLikeCount = (int) profileFavoriteRecipeRepository.countByRecipe(last);
-            nextCursor = new LikeCountCursorResponse(lastLikeCount, last.getId());
+            nextCursor = new LikeCountCursorResponse(last.getLikeCount(), last.getId());
         }
 
         return new RecipeLikeResponse(items, hasNext, nextCursor);
@@ -190,7 +188,7 @@ public class RecipeQueryService {
         String source = recipe instanceof RecipeWithLink rwl ? rwl.getUrlSource() : null;
 
         int totalIngredientCount = recipeIngredientRepository.countByRecipe(recipe);
-        int likeCount = (int) profileFavoriteRecipeRepository.countByRecipe(recipe);
+        int likeCount = recipe.getLikeCount();
         int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
 
         return new RecipeSearchItemResponse(
@@ -272,7 +270,7 @@ public class RecipeQueryService {
         recipeIngredientIds.retainAll(fridgeIngredientIds);
         int matchedIngredientCount = recipeIngredientIds.size();
 
-        int likeCount = (int) profileFavoriteRecipeRepository.countByRecipe(recipe);
+        int likeCount = recipe.getLikeCount();
         int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
         boolean liked = profileFavoriteRecipeRepository.existsByProfileAndRecipe(profile, recipe);
 
@@ -379,8 +377,7 @@ public class RecipeQueryService {
         LikeCountCursorResponse nextCursor = null;
         if (hasNext && !recipes.isEmpty()) {
             Recipe last = recipes.get(recipes.size() - 1);
-            int lastLikeCount = (int) profileFavoriteRecipeRepository.countByRecipe(last);
-            nextCursor = new LikeCountCursorResponse(lastLikeCount, last.getId());
+            nextCursor = new LikeCountCursorResponse(last.getLikeCount(), last.getId());
         }
 
         return new RecipeLikeResponse(items, hasNext, nextCursor);
@@ -443,7 +440,7 @@ public class RecipeQueryService {
         recipeIngredientIds.retainAll(fridgeIngredientIds);
         int matchedIngredientCount = recipeIngredientIds.size();
 
-        int likeCount = (int) profileFavoriteRecipeRepository.countByRecipe(recipe);
+        int likeCount = recipe.getLikeCount();
         int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
 
         return new FavoriteRecipeItem(

@@ -38,7 +38,7 @@ public class RecipeFavoriteService {
 
         ProfileFavoriteRecipe favorite = ProfileFavoriteRecipe.create(profile, recipe);
         profileFavoriteRecipeRepository.save(favorite);
-
+        recipe.increaseLikeCount();
     }
 
     @Transactional
@@ -47,8 +47,11 @@ public class RecipeFavoriteService {
         Recipe recipe = loadRecipe(recipeId);
 
         profileFavoriteRecipeRepository
-                .findByProfileAndRecipe(profile,recipe)
-                .ifPresent(profileFavoriteRecipeRepository::delete);
+                .findByProfileAndRecipe(profile, recipe)
+                .ifPresent(fav -> {
+                    profileFavoriteRecipeRepository.delete(fav);
+                    recipe.decreaseLikeCount();
+                });
 
     }
 
