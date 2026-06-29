@@ -14,6 +14,9 @@ public interface RecipeReviewRepository extends JpaRepository<RecipeReview, Long
 
     long countByRecipeId(Long recipeId);
 
+    @Query("SELECT r.recipe.id, COUNT(r) FROM RecipeReview r WHERE r.recipe.id IN :recipeIds GROUP BY r.recipe.id")
+    List<Object[]> countByRecipeIds(@Param("recipeIds") List<Long> recipeIds);
+
     List<RecipeReview> findByRecipeIdOrderByUpdatedAtDescIdDesc(Long recipeId, Pageable pageable);
 
     @Query("""

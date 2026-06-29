@@ -6,6 +6,7 @@ import com.potatoes.Naengu.recipe.domain.model.Recipe;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +19,15 @@ public interface ProfileFavoriteRecipeRepository extends JpaRepository<ProfileFa
     Optional<ProfileFavoriteRecipe> findByProfileAndRecipe(Profile profile, Recipe recipe);
 
     long countByRecipe(Recipe recipe);
+
+    @Query("""
+            SELECT pfr.recipe.id FROM ProfileFavoriteRecipe pfr
+            WHERE pfr.profile = :profile AND pfr.recipe.id IN :recipeIds
+            """)
+    Set<Long> findLikedRecipeIds(
+            @Param("profile") Profile profile,
+            @Param("recipeIds") List<Long> recipeIds
+    );
 
     @Query("""
             SELECT pfr FROM ProfileFavoriteRecipe pfr
