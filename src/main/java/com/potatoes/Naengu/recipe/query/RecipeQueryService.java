@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,8 +71,14 @@ public class RecipeQueryService {
             recipes = recipes.subList(0, request.size());
         }
 
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(recipeIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+        Set<Long> likedRecipeIds              = batchFindLiked(profile, recipeIds);
+
         List<RecipeSearchItemResponse> items = recipes.stream()
-                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .map(recipe -> toItemResponse(recipe, ingredientCountMap, matchedCountMap, reviewCountMap, likedRecipeIds))
                 .toList();
 
         CursorResponse nextCursor = null;
@@ -106,18 +113,23 @@ public class RecipeQueryService {
             recipes = recipes.subList(0, request.size());
         }
 
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(recipeIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+        Set<Long> likedRecipeIds              = batchFindLiked(profile, recipeIds);
+
         List<RecipeSearchItemResponse> items = recipes.stream()
-                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .map(recipe -> toItemResponse(recipe, ingredientCountMap, matchedCountMap, reviewCountMap, likedRecipeIds))
                 .toList();
 
         MatchCountCursorResponse nextCursor = null;
         if (hasNext && !recipes.isEmpty()) {
             Recipe last = recipes.get(recipes.size() - 1);
-            Set<Long> lastIngIds = recipeIngredientRepository.findByRecipe(last).stream()
-                    .map(ri -> ri.getIngredient().getId())
-                    .collect(Collectors.toSet());
-            lastIngIds.retainAll(fridgeIngredientIds);
-            nextCursor = new MatchCountCursorResponse(lastIngIds.size(), last.getId());
+            nextCursor = new MatchCountCursorResponse(
+                    matchedCountMap.getOrDefault(last.getId(), 0),
+                    last.getId()
+            );
         }
 
         return new RecipeMatchResponse(items, hasNext, nextCursor);
@@ -143,8 +155,14 @@ public class RecipeQueryService {
             recipes = recipes.subList(0, request.size());
         }
 
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(recipeIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+        Set<Long> likedRecipeIds              = batchFindLiked(profile, recipeIds);
+
         List<RecipeSearchItemResponse> items = recipes.stream()
-                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .map(recipe -> toItemResponse(recipe, ingredientCountMap, matchedCountMap, reviewCountMap, likedRecipeIds))
                 .toList();
 
         LikeCountCursorResponse nextCursor = null;
@@ -167,8 +185,12 @@ public class RecipeQueryService {
             recipes = recipes.subList(0, request.size());
         }
 
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+
         List<RecipeSearchItemResponse> items = recipes.stream()
-                .map(this::toItemResponseAnonymous)
+                .map(recipe -> toItemResponseAnonymous(recipe, ingredientCountMap, reviewCountMap))
                 .toList();
 
         LikeCountCursorResponse nextCursor = null;
@@ -180,16 +202,20 @@ public class RecipeQueryService {
         return new RecipeLikeResponse(items, hasNext, nextCursor);
     }
 
-    private RecipeSearchItemResponse toItemResponseAnonymous(Recipe recipe) {
+    private RecipeSearchItemResponse toItemResponseAnonymous(
+            Recipe recipe,
+            Map<Long, Integer> ingredientCountMap,
+            Map<Long, Integer> reviewCountMap) {
+
         String thumbnailUrl = recipe.getRecipeImage() != null
                 ? fileUploadService.getPublicUrl(recipe.getRecipeImage().getS3Key())
                 : fileUploadService.getDefaultProfileImageUrl();
 
         String source = recipe instanceof RecipeWithLink rwl ? rwl.getUrlSource() : null;
 
-        int totalIngredientCount = recipeIngredientRepository.countByRecipe(recipe);
+        int totalIngredientCount = ingredientCountMap.getOrDefault(recipe.getId(), 0);
         int likeCount = recipe.getLikeCount();
-        int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
+        int reviewCount = reviewCountMap.getOrDefault(recipe.getId(), 0);
 
         return new RecipeSearchItemResponse(
                 recipe.getId(),
@@ -202,8 +228,8 @@ public class RecipeQueryService {
                 likeCount,
                 reviewCount,
                 totalIngredientCount,
-                0,      // matchedIngredientCount: 비인증이므로 냉장고 매칭 불가
-                false   // liked: 비인증이므로 찜 여부 알 수 없음
+                0,
+                false
         );
     }
 
@@ -255,24 +281,24 @@ public class RecipeQueryService {
         }
     }
 
-    private RecipeSearchItemResponse toItemResponse(Recipe recipe, Set<Long> fridgeIngredientIds, Profile profile) {
+    private RecipeSearchItemResponse toItemResponse(
+            Recipe recipe,
+            Map<Long, Integer> ingredientCountMap,
+            Map<Long, Integer> matchedCountMap,
+            Map<Long, Integer> reviewCountMap,
+            Set<Long> likedRecipeIds) {
+
         String thumbnailUrl = recipe.getRecipeImage() != null
                 ? fileUploadService.getPublicUrl(recipe.getRecipeImage().getS3Key())
                 : fileUploadService.getDefaultProfileImageUrl();
 
         String source = recipe instanceof RecipeWithLink rwl ? rwl.getUrlSource() : null;
 
-        int totalIngredientCount = recipeIngredientRepository.countByRecipe(recipe);
-
-        Set<Long> recipeIngredientIds = recipeIngredientRepository.findByRecipe(recipe).stream()
-                .map(ri -> ri.getIngredient().getId())
-                .collect(Collectors.toSet());
-        recipeIngredientIds.retainAll(fridgeIngredientIds);
-        int matchedIngredientCount = recipeIngredientIds.size();
-
-        int likeCount = recipe.getLikeCount();
-        int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
-        boolean liked = profileFavoriteRecipeRepository.existsByProfileAndRecipe(profile, recipe);
+        int totalIngredientCount   = ingredientCountMap.getOrDefault(recipe.getId(), 0);
+        int matchedIngredientCount = matchedCountMap.getOrDefault(recipe.getId(), 0);
+        int likeCount              = recipe.getLikeCount();
+        int reviewCount            = reviewCountMap.getOrDefault(recipe.getId(), 0);
+        boolean liked              = likedRecipeIds.contains(recipe.getId());
 
         return new RecipeSearchItemResponse(
                 recipe.getId(),
@@ -334,8 +360,14 @@ public class RecipeQueryService {
             recipes = recipes.subList(0, request.size());
         }
 
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(recipeIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+        Set<Long> likedRecipeIds              = batchFindLiked(profile, recipeIds);
+
         List<RecipeSearchItemResponse> items = recipes.stream()
-                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .map(recipe -> toItemResponse(recipe, ingredientCountMap, matchedCountMap, reviewCountMap, likedRecipeIds))
                 .toList();
 
         CursorResponse nextCursor = null;
@@ -370,8 +402,14 @@ public class RecipeQueryService {
             recipes = recipes.subList(0, request.size());
         }
 
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(recipeIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+        Set<Long> likedRecipeIds              = batchFindLiked(profile, recipeIds);
+
         List<RecipeSearchItemResponse> items = recipes.stream()
-                .map(recipe -> toItemResponse(recipe, fridgeIngredientIds, profile))
+                .map(recipe -> toItemResponse(recipe, ingredientCountMap, matchedCountMap, reviewCountMap, likedRecipeIds))
                 .toList();
 
         LikeCountCursorResponse nextCursor = null;
@@ -409,8 +447,13 @@ public class RecipeQueryService {
             favorites = favorites.subList(0, size);
         }
 
+        List<Long> recipeIds = favorites.stream().map(pfr -> pfr.getRecipe().getId()).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(recipeIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(recipeIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(recipeIds);
+
         List<FavoriteRecipeItem> items = favorites.stream()
-                .map(pfr -> toFavoriteItem(pfr.getRecipe(), fridgeIngredientIds))
+                .map(pfr -> toFavoriteItem(pfr.getRecipe(), ingredientCountMap, matchedCountMap, reviewCountMap))
                 .toList();
 
         CursorResponse nextCursor = null;
@@ -425,23 +468,22 @@ public class RecipeQueryService {
         return new FavoriteRecipesResponse(items, hasNext, nextCursor);
     }
 
-    private FavoriteRecipeItem toFavoriteItem(Recipe recipe, Set<Long> fridgeIngredientIds) {
+    private FavoriteRecipeItem toFavoriteItem(
+            Recipe recipe,
+            Map<Long, Integer> ingredientCountMap,
+            Map<Long, Integer> matchedCountMap,
+            Map<Long, Integer> reviewCountMap) {
+
         String thumbnailUrl = recipe.getRecipeImage() != null
                 ? fileUploadService.getPublicUrl(recipe.getRecipeImage().getS3Key())
                 : fileUploadService.getDefaultProfileImageUrl();
 
         String source = recipe instanceof RecipeWithLink rwl ? rwl.getUrlSource() : null;
 
-        int totalIngredientCount = recipeIngredientRepository.countByRecipe(recipe);
-
-        Set<Long> recipeIngredientIds = recipeIngredientRepository.findByRecipe(recipe).stream()
-                .map(ri -> ri.getIngredient().getId())
-                .collect(Collectors.toSet());
-        recipeIngredientIds.retainAll(fridgeIngredientIds);
-        int matchedIngredientCount = recipeIngredientIds.size();
-
-        int likeCount = recipe.getLikeCount();
-        int reviewCount = (int) recipeReviewRepository.countByRecipeId(recipe.getId());
+        int totalIngredientCount   = ingredientCountMap.getOrDefault(recipe.getId(), 0);
+        int matchedIngredientCount = matchedCountMap.getOrDefault(recipe.getId(), 0);
+        int likeCount              = recipe.getLikeCount();
+        int reviewCount            = reviewCountMap.getOrDefault(recipe.getId(), 0);
 
         return new FavoriteRecipeItem(
                 recipe.getId(),
@@ -456,6 +498,38 @@ public class RecipeQueryService {
                 matchedIngredientCount,
                 true
         );
+    }
+
+    private Map<Long, Integer> batchCountIngredients(List<Long> recipeIds) {
+        if (recipeIds.isEmpty()) return Map.of();
+        return recipeIngredientRepository.countByRecipeIds(recipeIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+    }
+
+    private Map<Long, Integer> batchCountMatched(List<Long> recipeIds, Set<Long> fridgeIngredientIds) {
+        if (recipeIds.isEmpty() || fridgeIngredientIds.isEmpty()) return Map.of();
+        return recipeIngredientRepository.countMatchedByRecipeIds(recipeIds, fridgeIngredientIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+    }
+
+    private Map<Long, Integer> batchCountReviews(List<Long> recipeIds) {
+        if (recipeIds.isEmpty()) return Map.of();
+        return recipeReviewRepository.countByRecipeIds(recipeIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+    }
+
+    private Set<Long> batchFindLiked(Profile profile, List<Long> recipeIds) {
+        if (recipeIds.isEmpty()) return Set.of();
+        return profileFavoriteRecipeRepository.findLikedRecipeIds(profile, recipeIds);
     }
 
     private Set<Long> loadFridgeIngredientIds(Profile profile) {
