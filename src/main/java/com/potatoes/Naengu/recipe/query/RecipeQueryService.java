@@ -1,6 +1,7 @@
 package com.potatoes.Naengu.recipe.query;
 
 import com.potatoes.Naengu.file.service.FileUploadService;
+import com.potatoes.Naengu.fridge.domain.model.Fridge;
 import com.potatoes.Naengu.fridge.repository.FridgeIngredientRepository;
 import com.potatoes.Naengu.global.dto.LikeCountCursorResponse;
 import com.potatoes.Naengu.global.dto.MatchCountCursorResponse;
@@ -27,6 +28,8 @@ import com.potatoes.Naengu.recipe.repository.RecipeTagRepository;
 import com.potatoes.Naengu.reviewrecipe.repository.RecipeReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +38,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RecipeQueryService {
+
+    private static final String MATCH_RANKING_KEY_PREFIX = "match:ranking:";
 
     private final RecipeRepository recipeRepository;
     private final RecipeTagRepository recipeTagRepository;
@@ -50,6 +56,7 @@ public class RecipeQueryService {
     private final ProfileRepository profileRepository;
     private final FridgeIngredientRepository fridgeIngredientRepository;
     private final FileUploadService fileUploadService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional(readOnly = true)
     public RecipeSearchResponse search(Long userId, RecipeSearchRequest request) {
@@ -100,6 +107,80 @@ public class RecipeQueryService {
         Profile profile = profileRepository.findByUserEntityProviderId(userId)
                 .orElseThrow(() -> new ApiException(RecipeErrorCode.RECIPE_NOT_FOUND));
 
+        boolean hasKeyword = request.keyword() != null && !request.keyword().isBlank();
+        if (!hasKeyword) {
+            RecipeMatchResponse cached = searchByMatchCountFromRedis(profile, request);
+            if (cached != null) return cached;
+        }
+
+        return searchByMatchCountFromDb(profile, request);
+    }
+
+    private RecipeMatchResponse searchByMatchCountFromRedis(Profile profile, RecipeSearchRequest request) {
+        Fridge fridge = profile.getFridge();
+        String key = MATCH_RANKING_KEY_PREFIX + fridge.getId();
+        long count = request.size() + 1L;
+
+        Set<ZSetOperations.TypedTuple<String>> tuples;
+        if (request.cursorMatchCount() != null) {
+            tuples = redisTemplate.opsForZSet()
+                    .reverseRangeByScoreWithScores(key, 0, request.cursorMatchCount() - 1, 0, count);
+        } else {
+            tuples = redisTemplate.opsForZSet()
+                    .reverseRangeWithScores(key, 0, count - 1);
+        }
+
+        if (tuples == null || tuples.isEmpty()) return null;
+
+        List<Long> recipeIds = tuples.stream()
+                .map(t -> Long.valueOf(t.getValue()))
+                .toList();
+
+        Map<Long, Double> scoreMap = tuples.stream()
+                .collect(Collectors.toMap(
+                        t -> Long.valueOf(t.getValue()),
+                        ZSetOperations.TypedTuple::getScore
+                ));
+
+        Map<Long, Recipe> recipeMap = recipeRepository.findAllById(recipeIds)
+                .stream()
+                .collect(Collectors.toMap(Recipe::getId, r -> r));
+
+        List<Recipe> recipes = recipeIds.stream()
+                .map(recipeMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        boolean hasNext = recipes.size() > request.size();
+        if (hasNext) recipes = recipes.subList(0, request.size());
+
+        Set<Long> fridgeIngredientIds = fridgeIngredientRepository
+                .findAllByFridgeCategory_Fridge(fridge)
+                .stream()
+                .map(fi -> fi.getIngredient().getId())
+                .collect(Collectors.toSet());
+
+        List<Long> finalIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Integer> ingredientCountMap = batchCountIngredients(finalIds);
+        Map<Long, Integer> matchedCountMap    = batchCountMatched(finalIds, fridgeIngredientIds);
+        Map<Long, Integer> reviewCountMap     = batchCountReviews(finalIds);
+        Set<Long> likedRecipeIds              = batchFindLiked(profile, finalIds);
+
+        List<RecipeSearchItemResponse> items = recipes.stream()
+                .map(r -> toItemResponse(r, ingredientCountMap, matchedCountMap, reviewCountMap, likedRecipeIds))
+                .toList();
+
+        MatchCountCursorResponse nextCursor = null;
+        if (hasNext && !recipes.isEmpty()) {
+            Recipe last = recipes.get(recipes.size() - 1);
+            double lastScore = scoreMap.getOrDefault(last.getId(), 0.0);
+            nextCursor = new MatchCountCursorResponse((int) lastScore, last.getId());
+        }
+
+        return new RecipeMatchResponse(items, hasNext, nextCursor);
+    }
+
+    private RecipeMatchResponse searchByMatchCountFromDb(Profile profile, RecipeSearchRequest request) {
         Set<Long> fridgeIngredientIds = fridgeIngredientRepository
                 .findAllByFridgeCategory_Fridge(profile.getFridge())
                 .stream()
