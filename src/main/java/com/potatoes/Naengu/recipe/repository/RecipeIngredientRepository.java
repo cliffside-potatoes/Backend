@@ -28,4 +28,12 @@ public interface RecipeIngredientRepository extends JpaRepository<RecipeIngredie
             @Param("recipeIds") List<Long> recipeIds,
             @Param("fridgeIngredientIds") Set<Long> fridgeIngredientIds
     );
+
+    @Query("""
+            SELECT ri.recipe.id, COUNT(ri)
+            FROM RecipeIngredient ri
+            WHERE ri.ingredient.id IN :ingredientIds
+            GROUP BY ri.recipe.id
+            """)
+    List<Object[]> countMatchedByIngredientIds(@Param("ingredientIds") Set<Long> ingredientIds);
 }

@@ -13,6 +13,7 @@ import com.potatoes.Naengu.fridge.dto.CreateFridgeIngredientCommand;
 import com.potatoes.Naengu.fridge.dto.UpdateFridgeIngredientCommand;
 import com.potatoes.Naengu.fridge.repository.FridgeIngredientRepository;
 import com.potatoes.Naengu.global.exception.ApiException;
+import com.potatoes.Naengu.recipe.service.RecipeMatchRankingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,15 +23,18 @@ public class FridgeIngredientService {
     private final FridgeIngredientRepository fridgeIngredientRepository;
     private final IngredientRepository ingredientRepository;
     private final FridgeCategoryRepository fridgeCategoryRepository;
+    private final RecipeMatchRankingService recipeMatchRankingService;
 
     public FridgeIngredientService(
             FridgeIngredientRepository fridgeIngredientRepository,
             IngredientRepository ingredientRepository,
-            FridgeCategoryRepository fridgeCategoryRepository
+            FridgeCategoryRepository fridgeCategoryRepository,
+            RecipeMatchRankingService recipeMatchRankingService
     ) {
         this.fridgeIngredientRepository = fridgeIngredientRepository;
         this.ingredientRepository = ingredientRepository;
         this.fridgeCategoryRepository = fridgeCategoryRepository;
+        this.recipeMatchRankingService = recipeMatchRankingService;
     }
 
     @Transactional
@@ -41,7 +45,9 @@ public class FridgeIngredientService {
         ensureNotDuplicated(category.getId(), ingredient.getId());
 
         FridgeIngredient entity = FridgeIngredient.create(category, ingredient);
-        return fridgeIngredientRepository.save(entity).getId();
+        Long id = fridgeIngredientRepository.save(entity).getId();
+        recipeMatchRankingService.refresh(fridge);
+        return id;
     }
 
     @Transactional
@@ -61,6 +67,7 @@ public class FridgeIngredientService {
         );
 
         fridgeIngredient.update(targetCategory, targetIngredient);
+        recipeMatchRankingService.refresh(fridge);
         return fridgeIngredient.getId();
     }
 
@@ -70,6 +77,7 @@ public class FridgeIngredientService {
         ensureOwnedByFridge(fridge, fridgeIngredient);
 
         fridgeIngredientRepository.delete(fridgeIngredient);
+        recipeMatchRankingService.refresh(fridge);
     }
 
     private FridgeCategory loadOwnedCategory(Fridge fridge, Long categoryId) {
