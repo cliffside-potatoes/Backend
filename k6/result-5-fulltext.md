@@ -94,16 +94,91 @@ WHERE MATCH(r.title) AGAINST('국수' IN BOOLEAN MODE);
 
 ---
 
-## k6 After
+## k6 After — FULLTEXT (keyword: 닭가슴살)
 
-> 코드 변경 + ALTER TABLE 후 측정 예정
+> keyword를 레시피 → 닭가슴살로 변경한 이유:
+> 레시피는 N-gram 토큰(레시, 시피)이 거의 모든 레시피 제목에 매칭되어 FULLTEXT 이점이 사라짐.
+> LIKE는 키워드 무관 항상 풀스캔이므로 before 164ms는 어떤 키워드든 동일한 대표값.
+
+| 지표 | 1회차 (콜드) | 2회차 (워밍업) |
+|---|---|---|
+| avg | 122ms | **104ms** |
+| p(90) | 162ms | **140ms** |
+| p(95) | 174ms | **156ms** |
+| max | 286ms | 313ms |
+| RPS | 43.44/s | **47.23/s** |
+| 총 요청 수 | 1,743개 | 1,896개 |
+| 에러율 | 0% | 0% |
+
+**2회차를 공식 수치로 사용**
+
+---
+
+## Before vs After 최종 비교
 
 | 지표 | Before (LIKE) | After (FULLTEXT) | 개선율 |
 |---|---|---|---|
-| avg | 164ms | **?ms** | **?%** |
-| p(95) | 229ms | **?ms** | **?%** |
-| RPS | 36.79/s | **?/s** | **?%** |
-| Active Connection Max | 7 | **?** | **?** |
+| avg | 164ms | **104ms** | **↓ 36.6%** |
+| p(95) | 229ms | **156ms** | **↓ 31.9%** |
+| RPS | 36.79/s | **47.23/s** | **↑ 28.4%** |
+
+### EXPLAIN 비교
+
+| | Before | After |
+|---|---|---|
+| type | **ALL** (풀스캔) | **fulltext** (인덱스 스캔) |
+| key | NULL | ft_recipe_title |
+| rows | **9,865** | **1** |
+
+---
+
+## 레시피 키워드 실험 결과 (참고)
+
+> 광범위한 키워드일 때 FULLTEXT가 오히려 느려지는 케이스
+
+| 지표 | Before (LIKE) | After (FULLTEXT) |
+|---|---|---|
+| avg | 164ms | 708ms |
+| p(95) | 229ms | 997ms |
+| RPS | 36.79/s | 12.19/s |
+
+원인: 레시피 → N-gram 토큰 레시·시피가 9,865개 중 대부분 매칭 → FULLTEXT가 수천 건 찾은 후 created_at 정렬 → LIMIT. 선택도 낮은 키워드에서는 FULLTEXT 효과 없음.
+
+---
+
+## Grafana After (step5-after-fulltext/)
+
+### a4-1 — Basic Statistics
+| 지표 | 수치 |
+|---|---|
+| Uptime | 12.8분 (2026-07-01 15:34:08 기동) |
+| CPU Mean/Max | System 0.0744 / 0.959, Process 0.0358 / 0.655 |
+| Load Average Mean/Max | 0.368 / 3.78 |
+| Heap Used | 29.7% |
+| Non-Heap Used | 12.7% |
+
+### a4-2 — JVM GC
+| 지표 | 수치 |
+|---|---|
+| GC Count Max | 0.733/s |
+| GC Stop the World Max | 7.13ms |
+
+### a4-3 — HikariCP ★핵심
+| 지표 | 수치 |
+|---|---|
+| Active Connection Max | **9** (레시피 광범위 키워드 실험 포함) |
+| Idle Mean | 9.61 |
+| Connection Usage Time | 레시피 실험 시 ~600ms → 닭가슴살 실험 시 ~0ms 수준으로 급감 |
+
+> Usage Time 그래프: 15:00~15:10 (레시피, 708ms)에서 높은 점유 → 15:35~15:45 (닭가슴살, 104ms)에서 급락.
+> FULLTEXT가 선택도 높은 키워드에서 DB 연결 점유 시간을 크게 줄임.
+
+### a4-4 — HTTP Statistics
+| 항목 | 비고 |
+|---|---|
+| GET [401] /recipes | 초기 토큰 만료로 발생한 인증 오류 (실험 전) |
+| GET [500] /recipes | 레시피 키워드 실험 1회차 일부 오류 |
+| GET [200] /recipes | 닭가슴살 실험 기간 캡처 범위 밖 (k6 수치로 대체) |
 
 ---
 
@@ -120,7 +195,7 @@ WHERE MATCH(r.title) AGAINST('국수' IN BOOLEAN MODE);
 ### After (step5-after-fulltext/)
 | 파일 | 내용 |
 |---|---|
-| `a4-1.jpg` | Basic Statistics |
-| `a4-2.jpg` | JVM GC |
-| `a4-3.jpg` | HikariCP (Active Connection after) ★PPT 핵심 |
-| `a4-4.jpg` | HTTP Statistics (GET /recipes after) ★PPT 핵심 |
+| `a4-1.jpg` | Basic Statistics (CPU / Load Average) |
+| `a4-2.jpg` | JVM GC (Stop the World 7.13ms) |
+| `a4-3.jpg` | HikariCP ★PPT 핵심 — Usage Time 레시피 ~600ms → 닭가슴살 ~0ms 급락 |
+| `a4-4.jpg` | HTTP Statistics (401/500 오류 확인용) |
