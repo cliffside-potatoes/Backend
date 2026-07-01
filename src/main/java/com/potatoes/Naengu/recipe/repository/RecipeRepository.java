@@ -15,9 +15,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("SELECT r FROM Recipe r ORDER BY r.createdAt DESC, r.id DESC")
     List<Recipe> findLatestAll(Pageable pageable);
 
-    @Query("SELECT r FROM Recipe r WHERE r.title LIKE %:keyword% ORDER BY r.createdAt DESC, r.id DESC")
-    List<Recipe> findLatestByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
     @Query("""
             SELECT r FROM Recipe r
             WHERE r.createdAt < :cursorCreatedAt
@@ -30,19 +27,65 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             Pageable pageable
     );
 
-    @Query("""
-            SELECT r FROM Recipe r
-            WHERE r.title LIKE %:keyword%
-              AND (r.createdAt < :cursorCreatedAt
-                   OR (r.createdAt = :cursorCreatedAt AND r.id < :cursorId))
-            ORDER BY r.createdAt DESC, r.id DESC
-            """)
-    List<Recipe> findLatestByKeywordAfterCursor(
+    // FULLTEXT 키워드 검색 — ID만 반환 (Recipe가 JOINED 상속이라 native query로 엔티티 직접 반환 불가)
+    @Query(value = """
+            SELECT r.id FROM recipe r
+            WHERE MATCH(r.title) AGAINST(:keyword IN BOOLEAN MODE)
+            ORDER BY r.created_at DESC, r.id DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findIdsByKeywordLatest(
+            @Param("keyword") String keyword,
+            @Param("limit") int limit
+    );
+
+    @Query(value = """
+            SELECT r.id FROM recipe r
+            WHERE MATCH(r.title) AGAINST(:keyword IN BOOLEAN MODE)
+              AND (r.created_at < :cursorCreatedAt
+                   OR (r.created_at = :cursorCreatedAt AND r.id < :cursorId))
+            ORDER BY r.created_at DESC, r.id DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findIdsByKeywordLatestAfterCursor(
             @Param("keyword") String keyword,
             @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorId") Long cursorId,
-            Pageable pageable
+            @Param("limit") int limit
     );
+
+    @Query(value = """
+            SELECT r.id FROM recipe r
+            WHERE MATCH(r.title) AGAINST(:keyword IN BOOLEAN MODE)
+            ORDER BY r.like_count DESC, r.id DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findIdsByKeywordLikeCount(
+            @Param("keyword") String keyword,
+            @Param("limit") int limit
+    );
+
+    @Query(value = """
+            SELECT r.id FROM recipe r
+            WHERE MATCH(r.title) AGAINST(:keyword IN BOOLEAN MODE)
+              AND (r.like_count < :cursorLikeCount
+                   OR (r.like_count = :cursorLikeCount AND r.id < :cursorId))
+            ORDER BY r.like_count DESC, r.id DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findIdsByKeywordLikeCountAfterCursor(
+            @Param("keyword") String keyword,
+            @Param("cursorLikeCount") int cursorLikeCount,
+            @Param("cursorId") Long cursorId,
+            @Param("limit") int limit
+    );
+
+    // ID로 엔티티 로드 — 정렬 순서 보존
+    @Query("SELECT r FROM Recipe r WHERE r.id IN :ids ORDER BY r.createdAt DESC, r.id DESC")
+    List<Recipe> findByIdsOrderByLatest(@Param("ids") List<Long> ids);
+
+    @Query("SELECT r FROM Recipe r WHERE r.id IN :ids ORDER BY r.likeCount DESC, r.id DESC")
+    List<Recipe> findByIdsOrderByLikeCount(@Param("ids") List<Long> ids);
 
     @Query("""
             SELECT r FROM Recipe r
@@ -108,35 +151,11 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     @Query("""
             SELECT r FROM Recipe r
-            WHERE r.title LIKE %:keyword%
-            ORDER BY r.likeCount DESC, r.id DESC
-            """)
-    List<Recipe> findTopByLikeCountWithKeyword(
-            @Param("keyword") String keyword,
-            Pageable pageable
-    );
-
-    @Query("""
-            SELECT r FROM Recipe r
             WHERE r.likeCount < :cursorLikeCount
                 OR (r.likeCount = :cursorLikeCount AND r.id < :cursorId)
             ORDER BY r.likeCount DESC, r.id DESC
             """)
     List<Recipe> findNextByLikeCount(
-            @Param("cursorLikeCount") int cursorLikeCount,
-            @Param("cursorId") Long cursorId,
-            Pageable pageable
-    );
-
-    @Query("""
-            SELECT r FROM Recipe r
-            WHERE r.title LIKE %:keyword%
-              AND (r.likeCount < :cursorLikeCount
-                OR (r.likeCount = :cursorLikeCount AND r.id < :cursorId))
-            ORDER BY r.likeCount DESC, r.id DESC
-            """)
-    List<Recipe> findNextByLikeCountWithKeyword(
-            @Param("keyword") String keyword,
             @Param("cursorLikeCount") int cursorLikeCount,
             @Param("cursorId") Long cursorId,
             Pageable pageable
