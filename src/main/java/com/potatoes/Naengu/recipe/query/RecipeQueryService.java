@@ -314,36 +314,53 @@ public class RecipeQueryService {
         );
     }
 
+    private String sanitizeKeyword(String keyword) {
+        return keyword.replaceAll("[+\\-><()~*\"@]", " ").trim();
+    }
+
     private List<Recipe> fetchLikeCountRecipes(RecipeSearchRequest request) {
-        PageRequest pageable = PageRequest.of(0, request.size() + 1);
+        int limit = request.size() + 1;
         boolean hasKeyword = request.keyword() != null && !request.keyword().isBlank();
         boolean hasCursor = request.cursorLikeCount() != null;
 
-        if (!hasCursor && !hasKeyword) {
-            return recipeRepository.findTopByLikeCount(pageable);
-        } else if (!hasCursor) {
-            return recipeRepository.findTopByLikeCountWithKeyword(request.keyword(), pageable);
-        } else if (!hasKeyword) {
+        if (!hasKeyword) {
+            PageRequest pageable = PageRequest.of(0, limit);
+            if (!hasCursor) return recipeRepository.findTopByLikeCount(pageable);
             return recipeRepository.findNextByLikeCount(request.cursorLikeCount(), request.cursorId(), pageable);
-        } else {
-            return recipeRepository.findNextByLikeCountWithKeyword(request.keyword(), request.cursorLikeCount(), request.cursorId(), pageable);
         }
+
+        String keyword = sanitizeKeyword(request.keyword());
+        List<Long> ids;
+        if (!hasCursor) {
+            ids = recipeRepository.findIdsByKeywordLikeCount(keyword, limit);
+        } else {
+            ids = recipeRepository.findIdsByKeywordLikeCountAfterCursor(keyword, request.cursorLikeCount(), request.cursorId(), limit);
+        }
+        if (ids.isEmpty()) return List.of();
+        return recipeRepository.findByIdsOrderByLikeCount(ids);
     }
 
     private List<Recipe> fetchLatestRecipes(RecipeSearchRequest request) {
-        PageRequest pageable = PageRequest.of(0, request.size() + 1);
+        int limit = request.size() + 1;
         boolean hasKeyword = request.keyword() != null && !request.keyword().isBlank();
 
-        if (request.cursorCreatedAt() == null) {
-            return hasKeyword
-                    ? recipeRepository.findLatestByKeyword(request.keyword(), pageable)
-                    : recipeRepository.findLatestAll(pageable);
+        if (!hasKeyword) {
+            PageRequest pageable = PageRequest.of(0, limit);
+            if (request.cursorCreatedAt() == null) return recipeRepository.findLatestAll(pageable);
+            LocalDateTime cursorTime = parseCursorTime(request.cursorCreatedAt());
+            return recipeRepository.findLatestAfterCursor(cursorTime, request.cursorId(), pageable);
         }
 
-        LocalDateTime cursorTime = parseCursorTime(request.cursorCreatedAt());
-        return hasKeyword
-                ? recipeRepository.findLatestByKeywordAfterCursor(request.keyword(), cursorTime, request.cursorId(), pageable)
-                : recipeRepository.findLatestAfterCursor(cursorTime, request.cursorId(), pageable);
+        String keyword = sanitizeKeyword(request.keyword());
+        List<Long> ids;
+        if (request.cursorCreatedAt() == null) {
+            ids = recipeRepository.findIdsByKeywordLatest(keyword, limit);
+        } else {
+            LocalDateTime cursorTime = parseCursorTime(request.cursorCreatedAt());
+            ids = recipeRepository.findIdsByKeywordLatestAfterCursor(keyword, cursorTime, request.cursorId(), limit);
+        }
+        if (ids.isEmpty()) return List.of();
+        return recipeRepository.findByIdsOrderByLatest(ids);
     }
 
     private List<Recipe> fetchMatchCountRecipes(RecipeSearchRequest request, Set<Long> fridgeIngredientIds) {

@@ -23,7 +23,7 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 
 const BASE_URL = 'https://test.naeng-gu.kr/api';
-const TOKEN = __ENV.TOKEN || '';
+const TOKEN = __ENV.TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0NzQyOTU2ODk0IiwiZXhwIjoxNzgyODA3NDM3fQ.XasxC9hO-Bn9h2jSBmwdP2jwbqEAdlaBhFBI1gGjLYfmKfxUcKZ4vXqvIQTiBf3rX7mSnnac3gepWgeuug8y9w';
 
 export const options = {
   stages: [

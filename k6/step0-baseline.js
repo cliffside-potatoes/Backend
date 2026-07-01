@@ -27,7 +27,7 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 
 const BASE_URL = 'https://test.naeng-gu.kr/api';
-const TOKEN = __ENV.TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0NzQyOTU2ODk0IiwiZXhwIjoxNzgyNjYyMjc1fQ.1rN3iSTb4Y47tVX9XO6GcbDtc1ZI72EjhkdQ4JIZNl7zoLCbgLBwwS7VIKwLhpp0nFN8JcArxsRYazhMl_GQcg';
+const TOKEN = __ENV.TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0NzQyOTU2ODk0IiwiZXhwIjoxNzgyNzE5NzMxfQ.OL_L0sLzEFkgAanOAHHmdcj12dEV_U9IbCaZMr-TUu5cMtoKq9CA0moxqY0IijCGiAwEF1idifQu5WujSShg_g';
 
 export const options = {
   stages: [
