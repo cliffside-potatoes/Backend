@@ -146,39 +146,39 @@ WHERE MATCH(r.title) AGAINST('국수' IN BOOLEAN MODE);
 
 ---
 
-## Grafana After (step5-after-fulltext/)
+## Grafana After (step5-after-fulltext/) — 닭가슴살 전용 측정
 
-### a4-1 — Basic Statistics
+### a5-1 — Basic Statistics
 | 지표 | 수치 |
 |---|---|
-| Uptime | 12.8분 (2026-07-01 15:34:08 기동) |
-| CPU Mean/Max | System 0.0744 / 0.959, Process 0.0358 / 0.655 |
-| Load Average Mean/Max | 0.368 / 3.78 |
-| Heap Used | 29.7% |
-| Non-Heap Used | 12.7% |
+| Uptime | 48.3분 (2026-07-01 15:34:08 기동) |
+| CPU Mean/Max | System 0.0637 / 0.914, Process 0.0283 / 0.512 |
+| Load Average Mean/Max | 0.365 / 3.20 |
+| Heap Used | 27.3% |
+| Non-Heap Used | 13.1% |
 
-### a4-2 — JVM GC
+### a5-2 — JVM GC
+| 지표 | Before | After |
+|---|---|---|
+| GC Count Max | 0.733/s | 0.6/s |
+| GC Stop the World Max | **7.13ms** | **4.53ms** |
+
+### a5-3 — HikariCP ★핵심
+| 지표 | Before | After |
+|---|---|---|
+| Active Connection Max | **7** | **4** (↓ 43%) |
+| Connection Usage Time | ~100ms | ~110ms → 급락 (k6 종료 즉시 0) |
+
+> Active Connection 7 → 4: FULLTEXT 인덱스 스캔으로 쿼리가 빨라지면서 DB 연결 점유 시간 감소
+
+### a5-4 — HTTP Statistics ★핵심
 | 지표 | 수치 |
 |---|---|
-| GC Count Max | 0.733/s |
-| GC Stop the World Max | 7.13ms |
+| GET [200] /recipes Mean | **109ms** |
+| GET [200] /recipes Max | **154ms** |
+| GET [200] /recipes Min | **80.6ms** |
 
-### a4-3 — HikariCP ★핵심
-| 지표 | 수치 |
-|---|---|
-| Active Connection Max | **9** (레시피 광범위 키워드 실험 포함) |
-| Idle Mean | 9.61 |
-| Connection Usage Time | 레시피 실험 시 ~600ms → 닭가슴살 실험 시 ~0ms 수준으로 급감 |
-
-> Usage Time 그래프: 15:00~15:10 (레시피, 708ms)에서 높은 점유 → 15:35~15:45 (닭가슴살, 104ms)에서 급락.
-> FULLTEXT가 선택도 높은 키워드에서 DB 연결 점유 시간을 크게 줄임.
-
-### a4-4 — HTTP Statistics
-| 항목 | 비고 |
-|---|---|
-| GET [401] /recipes | 초기 토큰 만료로 발생한 인증 오류 (실험 전) |
-| GET [500] /recipes | 레시피 키워드 실험 1회차 일부 오류 |
-| GET [200] /recipes | 닭가슴살 실험 기간 캡처 범위 밖 (k6 수치로 대체) |
+> 닭가슴살 k6 구간만 독립 캡처 — 혼합 없이 FULLTEXT 단독 수치 확인
 
 ---
 
@@ -192,10 +192,11 @@ WHERE MATCH(r.title) AGAINST('국수' IN BOOLEAN MODE);
 | `b4-3.jpg` | HikariCP (Active Connection max **7**) ★PPT 핵심 |
 | `b4-4.jpg` | HTTP Statistics (GET /recipes 164ms) ★PPT 핵심 |
 
-### After (step5-after-fulltext/)
+### After (step5-after-fulltext/) — 닭가슴살 전용 측정
 | 파일 | 내용 |
 |---|---|
-| `a4-1.jpg` | Basic Statistics (CPU / Load Average) |
-| `a4-2.jpg` | JVM GC (Stop the World 7.13ms) |
-| `a4-3.jpg` | HikariCP ★PPT 핵심 — Usage Time 레시피 ~600ms → 닭가슴살 ~0ms 급락 |
-| `a4-4.jpg` | HTTP Statistics (401/500 오류 확인용) |
+| `a5-1.jpg` | Basic Statistics (CPU Max 0.914, Load 3.20) |
+| `a5-2.jpg` | JVM GC (Stop the World **4.53ms**, Before 7.13ms에서 감소) |
+| `a5-3.jpg` | HikariCP ★PPT 핵심 — Active Max **4** (Before 7), Usage Time 급락 |
+| `a5-4.jpg` | HTTP Statistics ★PPT 핵심 — GET /recipes Mean **109ms** 명확히 확인 |
+| `a4-4-2.jpg` | HTTP Statistics (레시피+닭가슴살 혼합, 참고용) |
