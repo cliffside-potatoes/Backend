@@ -3,6 +3,7 @@ package com.potatoes.Naengu.recipe.repository;
 import com.potatoes.Naengu.recipe.domain.model.Recipe;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,6 +12,14 @@ import java.util.List;
 import java.util.Set;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Recipe r SET r.likeCount = r.likeCount + 1 WHERE r.id = :id")
+    void increaseLikeCount(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Recipe r SET r.likeCount = r.likeCount - 1 WHERE r.id = :id AND r.likeCount > 0")
+    void decreaseLikeCount(@Param("id") Long id);
 
     @Query("SELECT r FROM Recipe r ORDER BY r.createdAt DESC, r.id DESC")
     List<Recipe> findLatestAll(Pageable pageable);

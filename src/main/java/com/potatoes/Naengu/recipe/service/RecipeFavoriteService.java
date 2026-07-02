@@ -3,7 +3,6 @@ package com.potatoes.Naengu.recipe.service;
 import com.potatoes.Naengu.global.exception.ApiException;
 import com.potatoes.Naengu.profile.domain.model.Profile;
 import com.potatoes.Naengu.profile.repository.ProfileRepository;
-import com.potatoes.Naengu.recipe.domain.model.ProfileFavoriteRecipe;
 import com.potatoes.Naengu.recipe.domain.model.Recipe;
 import com.potatoes.Naengu.recipe.exception.RecipeErrorCode;
 import com.potatoes.Naengu.recipe.repository.ProfileFavoriteRecipeRepository;
@@ -31,14 +30,10 @@ public class RecipeFavoriteService {
         Profile profile = loadProfile(userId);
         Recipe recipe = loadRecipe(recipeId);
 
-        boolean exists = profileFavoriteRecipeRepository.existsByProfileAndRecipe(profile, recipe);
-        if (exists) {
-            return;
+        int inserted = profileFavoriteRecipeRepository.insertIgnore(profile.getId(), recipe.getId());
+        if (inserted > 0) {
+            recipeRepository.increaseLikeCount(recipe.getId());
         }
-
-        ProfileFavoriteRecipe favorite = ProfileFavoriteRecipe.create(profile, recipe);
-        profileFavoriteRecipeRepository.save(favorite);
-        recipe.increaseLikeCount();
     }
 
     @Transactional
@@ -46,13 +41,10 @@ public class RecipeFavoriteService {
         Profile profile = loadProfile(userId);
         Recipe recipe = loadRecipe(recipeId);
 
-        profileFavoriteRecipeRepository
-                .findByProfileAndRecipe(profile, recipe)
-                .ifPresent(fav -> {
-                    profileFavoriteRecipeRepository.delete(fav);
-                    recipe.decreaseLikeCount();
-                });
-
+        int deleted = profileFavoriteRecipeRepository.deleteByProfileAndRecipe(profile, recipe);
+        if (deleted > 0) {
+            recipeRepository.decreaseLikeCount(recipe.getId());
+        }
     }
 
     private Profile loadProfile(long userId) {
