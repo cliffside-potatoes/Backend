@@ -71,3 +71,14 @@ management:
   metrics:
     tags:
       application: naengu
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!local"
+
+logging:
+  structured:
+    format:
+      console: logstash
