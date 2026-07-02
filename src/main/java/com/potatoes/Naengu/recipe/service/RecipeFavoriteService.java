@@ -32,7 +32,7 @@ public class RecipeFavoriteService {
 
         int inserted = profileFavoriteRecipeRepository.insertIgnore(profile.getId(), recipe.getId());
         if (inserted > 0) {
-            recipe.increaseLikeCount();
+            recipeRepository.increaseLikeCount(recipe.getId());
         }
     }
 
@@ -43,7 +43,7 @@ public class RecipeFavoriteService {
 
         int deleted = profileFavoriteRecipeRepository.deleteByProfileAndRecipe(profile, recipe);
         if (deleted > 0) {
-            recipe.decreaseLikeCount();
+            recipeRepository.decreaseLikeCount(recipe.getId());
         }
     }
 
