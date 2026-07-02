@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +20,17 @@ public interface ProfileFavoriteRecipeRepository extends JpaRepository<ProfileFa
     Optional<ProfileFavoriteRecipe> findByProfileAndRecipe(Profile profile, Recipe recipe);
 
     long countByRecipe(Recipe recipe);
+
+    @Modifying
+    @Query(value = """
+            INSERT IGNORE INTO profile_favorite_recipe (profile_id, recipe_id, created_at)
+            VALUES (:profileId, :recipeId, NOW())
+            """, nativeQuery = true)
+    int insertIgnore(@Param("profileId") Long profileId, @Param("recipeId") Long recipeId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM ProfileFavoriteRecipe pfr WHERE pfr.profile = :profile AND pfr.recipe = :recipe")
+    int deleteByProfileAndRecipe(@Param("profile") Profile profile, @Param("recipe") Recipe recipe);
 
     @Query("""
             SELECT pfr.recipe.id FROM ProfileFavoriteRecipe pfr
