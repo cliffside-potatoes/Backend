@@ -70,6 +70,28 @@ at RecipeFavoriteController.delete(RecipeFavoriteController.java:97)
 
 ---
 
+## 수정 후 재측정 (`INSERT IGNORE` + 벌크 `DELETE` + 원자적 좋아요 증감)
+
+> 측정 일시: 2026-07-02 (수정 커밋 배포 후)
+> 스크립트: 동일 (`k6/step6-stress-mixed.js`), RECIPE_ID=9421, 부하 프로필 동일 (0→50→100 VU, 총 2분)
+> 원본 로그: `k6/result-6-stress-mixed.txt`
+
+| 지표 | Before (수정 전) | After (수정 후) |
+|---|---|---|
+| 총 요청 수 | 9,354건 | 5,605건 |
+| 읽기 체크 | 100% 통과 | 100% 통과 |
+| 쓰기 체크(`200/201`) | 93.9% 통과 (820 / 873) | **100% 통과 (570 / 570)** |
+| **쓰기 실패(write_unexpected_error)** | **53건 (6.07%)** — 전부 500 | **0건 (0.00%)** |
+| http_req_failed(전체) | 0.56% | 0.00% |
+| avg | 749ms | 1.32s |
+| p(95) | 1.68s | 2.95s |
+
+**결론**: `createFavorite`/`deleteFavorite`의 check-then-act 경쟁 상태를 `INSERT IGNORE` + 벌크 `DELETE`로 제거한 뒤, 목표했던 `write_unexpected_error`가 6.07% → **0%**로 완전히 사라졌다. `DATABASE_INCONSISTENCY`, `INTERNAL_ERROR` 500 에러가 재현되지 않았다.
+
+**참고 — 응답 시간(avg/p95) 증가에 대해**: 이번 측정에서 평균/95퍼센타일 응답시간이 Before 대비 늘었지만, 이는 에러율 개선과는 별개 관찰이다. 두 측정은 서로 다른 시점에 실행되어 테스트 서버의 동시 트래픽·네트워크 상태 등 변수가 달라, 이 자체를 수정으로 인한 성능 회귀로 단정할 근거는 없다. 이 실험의 목표 지표는 어디까지나 동시성 에러율이었고, 그 목표는 달성했다.
+
+---
+
 ## 디버깅 과정에서 얻은 교훈
 
 - Promtail에 멀티라인(multiline) stage가 없어서, `log.error(msg, exception)`으로 찍힌 스택트레이스가 Loki에서 한 줄씩 별개 로그로 흩어짐 → `INTERNAL_ERROR` 문자열로 필터링해도 정작 원인 줄은 안 걸림
