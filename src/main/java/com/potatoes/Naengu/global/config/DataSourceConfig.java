@@ -27,19 +27,19 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public DataSource routingDataSource(DataSource masterDataSource, DataSource slaveDataSource) {
+    public DataSource routingDataSource() {
         RoutingDataSource routing = new RoutingDataSource();
         routing.setTargetDataSources(Map.of(
-                DataSourceType.MASTER, masterDataSource,
-                DataSourceType.SLAVE, slaveDataSource
+                DataSourceType.MASTER, masterDataSource(),
+                DataSourceType.SLAVE, slaveDataSource()
         ));
-        routing.setDefaultTargetDataSource(masterDataSource);
+        routing.setDefaultTargetDataSource(masterDataSource());
         return routing;
     }
 
     @Bean
     @Primary
-    public DataSource dataSource(DataSource routingDataSource) {
-        return new LazyConnectionDataSourceProxy(routingDataSource);
+    public DataSource dataSource() {
+        return new LazyConnectionDataSourceProxy(routingDataSource());
     }
 }
