@@ -88,7 +88,66 @@ at RecipeFavoriteController.delete(RecipeFavoriteController.java:97)
 
 **결론**: `createFavorite`/`deleteFavorite`의 check-then-act 경쟁 상태를 `INSERT IGNORE` + 벌크 `DELETE`로 제거한 뒤, 목표했던 `write_unexpected_error`가 6.07% → **0%**로 완전히 사라졌다. `DATABASE_INCONSISTENCY`, `INTERNAL_ERROR` 500 에러가 재현되지 않았다.
 
-**참고 — 응답 시간(avg/p95) 증가에 대해**: 이번 측정에서 평균/95퍼센타일 응답시간이 Before 대비 늘었지만, 이는 에러율 개선과는 별개 관찰이다. 두 측정은 서로 다른 시점에 실행되어 테스트 서버의 동시 트래픽·네트워크 상태 등 변수가 달라, 이 자체를 수정으로 인한 성능 회귀로 단정할 근거는 없다. 이 실험의 목표 지표는 어디까지나 동시성 에러율이었고, 그 목표는 달성했다.
+**참고 — 응답 시간(avg/p95) 증가에 대해**: 이번 측정에서 평균/95퍼센타일 응답시간이 Before 대비 늘었다. 아래 Grafana 캡처로 원인을 확인한 결과, 동시성 버그 수정과는 무관하게 **HikariCP 커넥션 풀 포화**(`result-6-stress-before.md`에서 이미 확인된 것과 동일한 병목)가 원인으로 보인다 — 동시성 에러가 사라지면서 요청이 전부 DB까지 도달하게 됐고, 그만큼 풀 경합이 오히려 더 드러난 것. 이 실험의 목표 지표는 동시성 에러율이었고 그 목표는 달성했으며, 응답 시간 문제는 DB 이중화로 다룰 별개 과제다.
+
+---
+
+## Grafana — 수정 후 재측정 중 애플리케이션/DB 지표 (`step6-stress-mixed-after-fix/`)
+
+> 측정 시각: 2026-07-02 23:45~23:50 (2분 스파이크 구간), 서버 Start time 22:57:29 기준 Uptime 1.0시간
+
+### b7-1 — Basic Statistics / CPU / Load Average
+
+| 지표 | 수치 |
+|---|---|
+| Heap Used / Non-Heap Used | 23.0% / 13.7% |
+| System CPU Usage Mean/Max | 0.0499 / **0.998** |
+| Process CPU Usage Mean/Max | 0.0254 / 0.718 |
+| Load Average Mean/Max | 0.400 / **9.33** (CPU 코어 2개 기준 약 4.7배) |
+| Process Open Files Max | ~120 (테스트 구간 급증) |
+
+### b7-2 — JVM GC
+
+| 지표 | 수치 |
+|---|---|
+| GC Count Max | 1 |
+| GC Stop the World Duration Max | 15.1ms |
+
+> 참고 지표. 병목의 주원인은 아님.
+
+### b7-3 — HikariCP ★핵심 증거
+
+| 지표 | 수치 |
+|---|---|
+| Pool Size | 10 |
+| Active Mean/Max | 0.299 / **10** (풀 최대치 도달) |
+| Idle Mean | 9.70 |
+| **Pending(대기) Max** | **85** |
+| Connection Creation Time | 스파이크 시 ~80ms |
+| Connection Usage Time | 스파이크 시 ~100ms |
+| **Connection Acquire Time Max** | **~500~600ms** |
+
+> `result-6-stress-before.md`(순수 읽기, Pending Max 78)보다도 Pending Max가 **85로 더 높다** — 동시성 버그가 사라지면서 이전엔 500으로 즉시 실패하고 빠졌을 요청까지 전부 DB 커넥션을 기다리게 됐기 때문으로 보인다. Read Replica 도입 필요성을 오히려 더 뒷받침하는 결과.
+
+### b7-4 — HTTP Statistics
+
+| 엔드포인트 | Mean | Max | Min |
+|---|---|---|---|
+| GET [200] /recipes | **1.04s** | 1.98s | 164ms |
+| POST [201] /recipes/{recipeId}/favorites | **1.06s** | 1.82s | 236ms |
+| GET [200] /profiles | 29.0ms | 29.0ms | 29.0ms |
+| POST [200] /oauth/token | 13.8ms | 17.9ms | 10.9ms |
+
+> 쓰기 요청(찜 토글)도 읽기와 비슷한 수준(avg 1.06s)으로 지연됨 — 같은 커넥션 풀을 공유하기 때문. `result-6-stress-mixed.md`(수정 전) 최초 발견 당시의 "읽기가 몰리면 쓰기까지 밀린다" 결론과 일치.
+
+### 스크린샷 목록
+
+| 파일 | 내용 |
+|---|---|
+| `step6-stress-mixed-after-fix/b7-1.jpg` | Basic Statistics — Load Avg Max 9.33 |
+| `step6-stress-mixed-after-fix/b7-2.jpg` | JVM GC (참고용) |
+| `step6-stress-mixed-after-fix/b7-3.jpg` | ★핵심 — HikariCP Pending Max **85**, Acquire Time Max ~500~600ms |
+| `step6-stress-mixed-after-fix/b7-4.jpg` | ★핵심 — GET /recipes 1.04s, POST .../favorites 1.06s |
 
 ---
 
