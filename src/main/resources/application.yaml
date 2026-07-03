@@ -3,10 +3,18 @@
     name: Naengu
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    master:
+      jdbc-url: ${SPRING_DATASOURCE_MASTER_URL}
+      username: ${SPRING_DATASOURCE_MASTER_USERNAME}
+      password: ${SPRING_DATASOURCE_MASTER_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      pool-name: MasterHikariPool
+    slave:
+      jdbc-url: ${SPRING_DATASOURCE_SLAVE_URL}
+      username: ${SPRING_DATASOURCE_SLAVE_USERNAME}
+      password: ${SPRING_DATASOURCE_SLAVE_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      pool-name: SlaveHikariPool
 
   jpa:
     open-in-view: false
