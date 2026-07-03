@@ -36,8 +36,8 @@ import { sleep, check, group } from 'k6';
 import { Rate } from 'k6/metrics';
 
 const BASE_URL = 'https://test.naeng-gu.kr/api';
-const TOKEN = __ENV.TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0NzQyOTU2ODk0IiwiZXhwIjoxNzgyOTY4NTM2fQ.5KHAw48KswhiOuKkdU7LCzT7BZsMm5t6g0vp3_NHytz4U-gaVs4GOVL9O7_fpVztmzLfb2capSYcprsQDr3hFw';
-const RECIPE_ID = __ENV.RECIPE_ID || '1'; // ⚠️ 실행 전 실제 존재하는 recipeId로 교체
+const TOKEN = __ENV.TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0NzQyOTU2ODk0IiwiZXhwIjoxNzgzMDA3MDkzfQ.NdPXhYOwI3MJF9QgI00bVFlt8vJUieWk8AtN6XOdIfOZHnlB_yztu72lAw8jTi-YrzggWz39l0pAtghW34oNHA';
+const RECIPE_ID = __ENV.RECIPE_ID || '9421';
 
 export const options = {
   stages: [
