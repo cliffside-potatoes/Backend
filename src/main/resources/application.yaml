@@ -1,9 +1,92 @@
-spring:
+﻿spring:
   application:
     name: Naengu
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    master:
+      jdbc-url: ${SPRING_DATASOURCE_MASTER_URL}
+      username: ${SPRING_DATASOURCE_MASTER_USERNAME}
+      password: ${SPRING_DATASOURCE_MASTER_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      pool-name: MasterHikariPool
+    slave:
+      jdbc-url: ${SPRING_DATASOURCE_SLAVE_URL}
+      username: ${SPRING_DATASOURCE_SLAVE_USERNAME}
+      password: ${SPRING_DATASOURCE_SLAVE_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      pool-name: SlaveHikariPool
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+
+kakao:
+  oauth:
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
+  dev-oauth:
+    client-id: ${KAKAO_DEV_CLIENT_ID}
+    client-secret: ${KAKAO_DEV_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_DEV_REDIRECT_URI}
+
+
+custom:
+  jwt:
+    secretKey: ${JWT_SECRET_KEY}
+
+
+logging:
+  level:
+    root: INFO
+    com.potatoes.Naengu: INFO
+    org.hibernate.SQL: debug
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_CRED_ACCESS_KEY}
+      secret-key: ${AWS_CRED_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    s3:
+      bucket: ${S3_BUCKET}
+      endpoint: ${S3_ENDPOINT}
+    stack:
+      auto: false
+
+app:
+  frontend-url: ${REDIRECT_FRONT_URL}
+  server-url: ${APP_SERVER_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    tags:
+      application: naengu
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!local"
+
+logging:
+  structured:
+    format:
+      console: logstash

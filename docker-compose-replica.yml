@@ -1,0 +1,30 @@
+version: '3.8'
+
+# 로컬 Master-Slave 복제 실습/시연용. 운영은 AWS RDS Read Replica를 사용한다 (.claude/plans/52-db-read-replica.md 참고).
+services:
+  mysql-master:
+    image: mysql:8.0
+    container_name: naenggu-mysql-master
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: naenggu
+    ports:
+      - "3306:3306"
+    command:
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-do-db=naenggu
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: naenggu-mysql-slave
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: naenggu
+    ports:
+      - "3307:3306"
+    command:
+      - --server-id=2
+      - --relay-log=relay-log
+    depends_on:
+      - mysql-master

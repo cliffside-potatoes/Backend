@@ -1,0 +1,42 @@
+package com.potatoes.Naengu.global.exception;
+
+import org.springframework.http.HttpStatus;
+
+public enum SystemErrorCode implements ErrorCode {
+    DATABASE_INCONSISTENCY(
+            "DATABASE_INCONSISTENCY",
+            "데이터 정합성 오류가 발생했습니다.",
+            HttpStatus.INTERNAL_SERVER_ERROR
+    ),
+
+    INTERNAL_ERROR(
+            "INTERNAL_ERROR",
+            "서버 내부 오류가 발생했습니다.",
+            HttpStatus.INTERNAL_SERVER_ERROR
+    );
+
+    private final String code;
+    private final String message;
+    private final HttpStatus status;
+
+    SystemErrorCode(String code, String message, HttpStatus status) {
+        this.code = code;
+        this.message = message;
+        this.status = status;
+    }
+
+    @Override
+    public String code() {
+        return code;
+    }
+
+    @Override
+    public String message() {
+        return message;
+    }
+
+    @Override
+    public HttpStatus status() {
+        return status;
+    }
+}
